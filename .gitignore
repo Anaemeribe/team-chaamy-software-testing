@@ -7,6 +7,8 @@
 # Log file
 *.log
 
+# Ignore any changes made to Autograder SUT
+src/main/java/
 
 ##############################
 ## Gradle
