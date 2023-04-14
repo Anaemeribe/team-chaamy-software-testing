@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'jacoco'
-    id 'info.solidsoft.pitest' version '1.9.0'
+    id 'info.solidsoft.pitest' version '1.5.2'
 }
 
 group 'org.example'
@@ -12,15 +12,17 @@ repositories {
 }
 
 dependencies {
+    implementation fileTree(dir: 'src/main/java/junit', include: ['*.jar'])
+    implementation 'com.puppycrawl.tools:checkstyle:10.9.3' // https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     testImplementation "org.mockito:mockito-core:3.+"
 }
 
 pitest {
-    junit5PluginVersion = '1.0.0'
-    targetClasses = ['TODO']
-    targetTests = ['TODO']
+    junit5PluginVersion = '0.12'
+    targetClasses = ['Autograder']
+    targetTests = ['AutograderMutationTest']
     threads = 4
     outputFormats = ['XML', 'HTML']
     timestampedReports = false
