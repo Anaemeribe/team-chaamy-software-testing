@@ -467,7 +467,7 @@ public class DrawingAutograder extends Autograder {
       public int compare(DummyShape t1, DummyShape t2) {
          int comp = t1.getName().compareTo(t2.getName());
          if (comp == 0) {
-            comp = t1.getColor().getRGB() - t2.getColor().getRGB();
+            comp = t1.getColor().compareTo(t2.getColor());
          }
          if (comp == 0) {
             if (t1.getFilled() && !t2.getFilled()) {
