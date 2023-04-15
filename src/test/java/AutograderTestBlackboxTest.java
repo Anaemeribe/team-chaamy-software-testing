@@ -3,7 +3,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.net.URL;
+import java.io.FileNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -220,4 +220,188 @@ public class AutograderTestBlackboxTest {
         final String finalPath = path;
         assertThrows(NullPointerException.class, () -> autograder.comparisonTest(finalPath, "", null));
     }
+
+    /*
+     * Tests to see if the comparisonTests method throws an exception if the programName argument is null
+     */
+    @Test
+    public void testComparisonTestsThrowsExceptionIfNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.comparisonTests(null, 1, new Object()));
+    }
+
+    /*
+     * Tests to see if the comparisonTests method throws an exception if the programName argument is empty
+     */
+    @Test
+    public void testComparisonTestsThrowsExceptionIfNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.comparisonTests("", 1, new Object()));
+    }
+
+    /*
+     * Tests to see if the comparisonTests method throws an exception if the count is negative
+     */
+    @Test
+    public void testComparisonTestsThrowsExceptionIfCountIsNegative()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        String path = file.getAbsolutePath();
+        int indexOfSample = path.indexOf("Sample.java");
+        path = path.substring(0, indexOfSample);
+        final String finalPath = path;
+        assertThrows(IllegalArgumentException.class, () -> autograder.comparisonTests(finalPath, -11, new Object()));
+    }
+
+    /*
+     * Tests to see if the comparisonTests method throws an exception if the caller argument is null
+     */
+    @Test
+    public void testComparisonTestsThrowsExceptionIfCallerIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        String path = file.getAbsolutePath();
+        int indexOfSample = path.indexOf("Sample.java");
+        path = path.substring(0, indexOfSample);
+        final String finalPath = path;
+        assertThrows(NullPointerException.class, () -> autograder.comparisonTests(finalPath, 1, null));
+    }
+
+    // compile method
+
+    /*
+     * Tests to see if the compile method throws an exception if the argument is null
+     */
+    @Test
+    public void testCompileIfFilenameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.compile(null));
+    }
+
+    /*
+     * Tests to see if the compile method throws an exception if the argument is empty
+     */
+    @Test
+    public void testCompileIfFilenameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.compile(""));
+    }
+
+    /*
+     * Tests to see if the compile method works for a valid Java file
+     */
+    @Test
+    public void testCompileWorks()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        int result = autograder.compile(file.getAbsolutePath());
+        assertEquals(0, result);
+    }
+
+    // diff files
+
+    /*
+     * Tests to see if the diffFiles method throws an exception if the argument is null
+     */
+    @Test
+    public void testDiffFilesIfFirstFilenameIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        assertThrows(NullPointerException.class, () -> autograder.diffFiles(null, file.getAbsolutePath()));
+    }
+
+    /*
+     * Tests to see if the diffFiles method throws an exception if the argument is null
+     */
+    @Test
+    public void testDiffFilesIfSecondFilenameIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        assertThrows(NullPointerException.class, () -> autograder.diffFiles(file.getAbsolutePath(), null));
+    }
+
+    /*
+     * Tests to see if the diffFiles method throws an exception if the first argument is empty
+     */
+    @Test
+    public void testDiffFilesIfFirstFilenameIsEmpty()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        assertThrows(IllegalArgumentException.class, () -> autograder.diffFiles("", file.getAbsolutePath()));
+    }
+
+    /*
+     * Tests to see if the diffFiles method throws an exception if the second argument is empty
+     */
+    @Test
+    public void testDiffFilesIfSecondFilenameIsEmpty()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        assertThrows(IllegalArgumentException.class, () -> autograder.diffFiles(file.getAbsolutePath(), ""));
+    }
+
+    /*
+     * Tests to see if the diffFiles method throws an exception if the first filename
+     * is an invalid file
+     */
+    @Test
+    public void testDiffFilesIfFirstFilenameIsInvalid()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        String dir = System.getProperty("user.dir");
+        assertThrows(FileNotFoundException.class, () -> autograder.diffFiles(dir, file.getAbsolutePath()));
+    }
+
+    /*
+     * Tests to see if the diffFiles method throws an exception if the second filename
+     * is an invalid file
+     */
+    @Test
+    public void testDiffFilesIfSecondFilenameIsInvalid()
+    {
+        File file = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        String dir = System.getProperty("user.dir");
+        assertThrows(FileNotFoundException.class, () -> autograder.diffFiles(file.getAbsolutePath(), dir));
+    }
+
+    /*
+     * Tests to see if the diffFiles method returns false for two different files
+     */
+    @Test
+    public void testDiffFilesWithTwoDifferentFiles()
+    {
+        File file1 = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        File file2 = new File(getClass().getClassLoader().getResource("multiple_scanners.java").getFile());
+        assertFalse(autograder.diffFiles(file1.getAbsolutePath(), file2.getAbsolutePath()));
+    }
+
+    /*
+     * Tests to see if the diffFiles method returns true for two different files
+     */
+    @Test
+    public void testDiffFilesWithTwoIdenticalFiles()
+    {
+        File file1 = new File(getClass().getClassLoader().getResource("programSample.java").getFile());
+        File file2 = new File(getClass().getClassLoader().getResource("programSample2.java").getFile());
+        assertTrue(autograder.diffFiles(file1.getAbsolutePath(), file2.getAbsolutePath()));
+    }
+
+    /*
+     * Tests to see if the getClasses method throws an exception if the argument is null
+     */
+    @Test
+    public void testGetClassesThrowsExceptionIfArgumentIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> Autograder.getClasses(null));
+    }
+
+    /*
+     * Tests to see if the getClasses method throws an exception if the argument contains null
+     */
+    @Test
+    public void testGetClassesThrowsExceptionIfArgumentContainsNull()
+    {
+        assertThrows(NullPointerException.class, () -> Autograder.getClasses(new String[]{"Integer", null}));
+    }
+
 }
