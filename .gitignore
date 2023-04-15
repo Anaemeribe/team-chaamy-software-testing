@@ -9,6 +9,8 @@
 
 # Ignore any changes made to Autograder SUT
 src/main/java/
+# Avoid ignoring PITest build results
+!build/reports/pitest
 
 ##############################
 ## Gradle
