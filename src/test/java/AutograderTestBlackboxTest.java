@@ -1,9 +1,11 @@
 import jh61b.grader.TestResult;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -402,6 +404,236 @@ public class AutograderTestBlackboxTest {
     public void testGetClassesThrowsExceptionIfArgumentContainsNull()
     {
         assertThrows(NullPointerException.class, () -> Autograder.getClasses(new String[]{"Integer", null}));
+    }
+
+    // Get method tests
+    @Test
+    public void testGetMethodThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> Autograder.getMethod(null, "getInt", Integer.class));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> Autograder.getMethod("", "getInt", Integer.class));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfProgramNameIsInvalid()
+    {
+        String dir = System.getProperty("user.dir");
+        assertThrows(IOException.class, () -> Autograder.getMethod(dir, "getInt", Integer.class));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfMethodNameIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(NullPointerException.class, () -> Autograder.getMethod(file.getAbsolutePath(), null, Integer.class));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfMethodNameIsEmpty()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(IllegalArgumentException.class, () -> Autograder.getMethod(file.getAbsolutePath(), "", Integer.class));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfMethodNameIsInvalid()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertNull(Autograder.getMethod(file.getAbsolutePath(), "invalid", Integer.class));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfArgTypesIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        String[] argTypes = null;
+        assertThrows(NullPointerException.class, () -> Autograder.getMethod(file.getAbsolutePath(), "setGear", argTypes));
+    }
+
+    @Test
+    public void testGetMethodThrowsExceptionIfArgTypesContainsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        String[] argTypes = new String[] {"Integer", null};
+        assertThrows(NullPointerException.class, () -> Autograder.getMethod(file.getAbsolutePath(), "setGear", argTypes));
+    }
+
+    @Test
+    public void testGetMethodWorks()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertNotNull(Autograder.getMethod(file.getAbsolutePath(), "setGear", Integer.class));
+    }
+
+    // getModifiers tests
+    @Test
+    public void testGetModifiersThrowsExceptionIfModsIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> Autograder.getModifiers(null));
+    }
+
+    @Test
+    public void testGetModifiersThrowsExceptionIfModsContainsNull()
+    {
+        String[] mods = new String[] {"abstract", null};
+        assertThrows(NullPointerException.class, () -> Autograder.getModifiers(mods));
+    }
+
+    @Test
+    public void testGetModifiersThrowsExceptionIfModsContainsInvalidModifier()
+    {
+        String[] mods = new String[] {"invalid"};
+        assertThrows(IllegalArgumentException.class, () -> Autograder.getModifiers(mods));
+    }
+
+    // hasMethods test
+    @Test
+    public void testHasMethodsTestThrowsExceptionIfClassNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodsTest(null, "Cloneable", false));
+    }
+
+    @Test
+    public void testHasMethodsTestThrowsExceptionIfClassNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasMethodsTest("", "Cloneable", false));
+    }
+
+    @Test
+    public void testHasMethodsTestThrowsExceptionIfInterfaceNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodsTest("Integer", null, false));
+    }
+
+    @Test
+    public void testHasMethodsTestThrowsExceptionIfInterfaceNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasMethodsTest("Integer", "", false));
+    }
+
+    @Test
+    public void testHasMethodsTestWorks()
+    {
+        assertTrue(autograder.hasMethodsTest("java.util.ArrayList", "Cloneable", false));
+    }
+
+    // test hasMethod
+
+    @Test
+    public void testHasMethodThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodTest(null, "setGear", new Class[]{Integer.class}, null, false, 0, false));
+    }
+
+    @Test
+    public void testHasMethodThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasMethodTest("", "setGear", new Class[]{Integer.class}, null, false, 0, false));
+    }
+
+    @Test
+    public void testHasMethodThrowsExceptionIfMethodNameIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodTest(file.getAbsolutePath(), null, new Class[]{Integer.class}, null, false, 0, false));
+    }
+
+    @Test
+    public void testHasMethodThrowsExceptionIfMethodNameIsEmpty()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasMethodTest(file.getAbsolutePath(), "", new Class[]{Integer.class}, null, false, 0, false));
+    }
+
+    @Test
+    public void testHasMethodThrowsExceptionIfReturnTypeIsNullAndCheckReturnIsTrue()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodTest(file.getAbsolutePath(), "getGear", new Class[]{Integer.class}, null, true, 0, false));
+    }
+
+    @Test
+    public void testHasMethodThrowsExceptionIfArgTypesContainsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        String[] argTypes = new String[] {"Integer", null};
+        String[] modifiers = new String[0];
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodTest(file.getAbsolutePath(), "setGear", argTypes, "void", false, modifiers, false));
+    }
+
+    @Test
+    public void testHasMethodThrowsExceptionIfArgTypesIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        String[] argTypes = null;
+        String[] modifiers = new String[0];
+        assertThrows(NullPointerException.class, () -> autograder.hasMethodTest(file.getAbsolutePath(), "setGear", argTypes, "void", false, modifiers, false));
+    }
+
+    @Test
+    public void testHasMethodWorks()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertTrue(autograder.hasMethodTest(file.getAbsolutePath(), "setGear", new Class[]{Integer.class}, null, false, 0, false));
+    }
+
+    // test junitTests
+
+    @Test
+    public void testJunitTestsThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.junitTests(null));
+    }
+
+    @Test
+    public void testJunitTestsThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.junitTests(""));
+    }
+
+    @Test
+    public void testJunitTestsThrowsExceptionIfProgramNameIsInvalid()
+    {
+        assertThrows(IOException.class, () -> autograder.junitTests("invalid"));
+    }
+
+    // test source exists
+
+    @Test
+    public void testSourceExistsThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testSourceExists(null));
+    }
+
+    @Test
+    public void testSourceExistsThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testSourceExists(""));
+    }
+
+    @Test
+    public void testSourceExistsThrowsExceptionIfProgramNameIsInvalid()
+    {
+        assertThrows(IOException.class, () -> autograder.testSourceExists("invalid"));
+    }
+
+    @Test
+    public void testConstructorWorks() {
+        assertEquals("hidden", autograder.getVisibility());
+        assertEquals("visible", autograder.getVisibility());
+    }
+
+    @Test
+    public void testAddTestResult() {
+        TestResult tr = new TestResult("Test testResult",
+                "5",
+                100, "visible");
+        autograder.addTestResult(tr);
     }
 
 }
