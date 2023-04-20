@@ -2883,7 +2883,7 @@ public class Autograder {
       public SecurityManager getPreviousMgr() { return _prevMgr; }
    } 
 
-   private static class ExitTrappedException extends SecurityException 
+   static class ExitTrappedException extends SecurityException
    { 
    }
 }
