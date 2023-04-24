@@ -748,14 +748,32 @@ public class AutograderTestBlackboxTest {
     public void testHasConstructorTestThrowsExceptionIfArgTypesContainsNull()
     {
         String[] argTypes = new String[] {"int", null};
-        assertThrows(Exception.class, () -> autograder.hasConstructorTest("NonExistent", argTypes, new String[0], false));
+        assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", argTypes, new String[0], false));
     }
 
     @Test
-    public void testHasConstructorTestThrowsExceptionIfArgTypesContainsNullh()
+    public void testHasConstructorTestThrowsExceptionIfArgTypesIsNull()
     {
-        String[] argTypes = new String[] {"int", null};
-        assertThrows(Exception.class, () -> autograder.hasConstructorTest("NonExistent", argTypes, new String[0], false));
+        String[] argTypes = null;
+        assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", argTypes, new String[0], false));
+    }
+
+    @Test
+    public void testHasConstructorTestThrowsExceptionIfModifiersIsNullAndCheckModifiersIsTrue()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", new String[0], null, true));
+    }
+
+    @Test
+    public void testHasConstructorReturnsTrueForClassWithValidConstructor()
+    {
+        assertTrue(autograder.hasConstructorTest("Integer", new String[] {"int"}, new String[0], false));
+    }
+
+    @Test
+    public void testHasConstructorReturnsTrueForClassWithNonMatchingConstructor()
+    {
+        assertFalse(autograder.hasConstructorTest("Integer", new String[] {"Integer"}, new String[0], false));
     }
 
 }
