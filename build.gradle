@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'jacoco'
+//    id 'jacoco'
     id 'info.solidsoft.pitest' version '1.5.2'
 }
 
@@ -30,18 +30,18 @@ pitest {
 
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport
+//    finalizedBy jacocoTestReport
 }
 
-jacoco {
-    toolVersion = "0.8.8"
-    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
-}
+//jacoco {
+//    toolVersion = "0.8.8"
+//    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+//}
 
-jacocoTestReport {
-    reports {
-        xml.required = false
-        csv.required = false
-        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
-    }
-}
+//jacocoTestReport {
+//    reports {
+//        xml.required = false
+//        csv.required = false
+//        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+//    }
+//}
