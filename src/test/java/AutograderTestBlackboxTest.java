@@ -1,5 +1,4 @@
 import jh61b.grader.TestResult;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,10 +12,13 @@ public class AutograderTestBlackboxTest {
 
     private Autograder autograder;
 
+    private String currentDir;
+
     @BeforeEach
     public void setup()
     {
         autograder = new Autograder();
+        currentDir = System.getProperty("user.dir");
     }
 
     /*
@@ -622,18 +624,138 @@ public class AutograderTestBlackboxTest {
         assertThrows(IOException.class, () -> autograder.testSourceExists("invalid"));
     }
 
+    // testCompiles
+
     @Test
-    public void testConstructorWorks() {
-        assertEquals("hidden", autograder.getVisibility());
-        assertEquals("visible", autograder.getVisibility());
+    public void testCompilesThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testCompiles(null));
     }
 
     @Test
-    public void testAddTestResult() {
-        TestResult tr = new TestResult("Test testResult",
-                "5",
-                100, "visible");
-        autograder.addTestResult(tr);
+    public void testCompilesThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testCompiles(""));
+    }
+
+    @Test
+    public void testCompilesThrowsExceptionIfProgramNameIsInvalid()
+    {
+        String dir = System.getProperty("user.dir");
+        assertThrows(IOException.class, () -> autograder.testCompiles(dir));
+    }
+
+    @Test
+    public void testCompilesReturnsTrueForValidJavaFile()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertTrue(autograder.testCompiles(file.getAbsolutePath()));
+    }
+
+    @Test
+    public void testCompilesReturnsFalseForInvalidJavaFile()
+    {
+        File file = new File(getClass().getClassLoader().getResource("invalid.java").getFile());
+        assertFalse(autograder.testCompiles(file.getAbsolutePath()));
+    }
+
+    // test hasFieldTest
+
+    @Test
+    public void testHasFieldTestThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasFieldTest(null, "gear", "int", new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasFieldTest("", "gear", "int", new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestThrowsExceptionIfProgramNameIsInvalid()
+    {
+        assertThrows(IOException.class, () -> autograder.hasFieldTest(currentDir, "gear", "int", new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestReturnsTrueForProgramWithField()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertTrue(autograder.hasFieldTest(file.getAbsolutePath(), "gear", "int", new String[0], false));
+
+        File file2 = new File(getClass().getClassLoader().getResource("Car.java").getFile());
+        assertTrue(autograder.hasFieldTest(file2.getAbsolutePath(), "gear", String.class, 0, false));
+    }
+
+    @Test
+    public void testHasFieldTestReturnsFalseForProgramWithoutField()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertFalse(autograder.hasFieldTest(file.getAbsolutePath(), "name", "int", new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestThrowsExceptionIfFieldNameIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(NullPointerException.class, () -> autograder.hasFieldTest(file.getAbsolutePath(), null, "int", new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestThrowsExceptionIfFieldNameIsEmpty()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasFieldTest(file.getAbsolutePath(), "", "int", new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestDoesNotThrowExceptionIfFieldTypeIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertDoesNotThrow(() -> autograder.hasFieldTest(file.getAbsolutePath(), "gear", null, new String[0], false));
+    }
+
+    @Test
+    public void testHasFieldTestReturnsTrueWhenNotCheckingForFieldType()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertTrue(() -> autograder.hasFieldTest(file.getAbsolutePath(), "gear", null, new String[0], false));
+    }
+
+    // test hasConstructorTest
+
+    @Test
+    public void testHasConstructorTestThrowsExceptionWhenClassNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest(null, new String[0], new String[0], false));
+    }
+
+    @Test
+    public void testHasConstructorTestThrowsExceptionWhenClassNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasConstructorTest("", new String[0], new String[0], false));
+    }
+
+    @Test
+    public void testHasConstructorTestThrowsExceptionWhenClassNameIsNonExistent()
+    {
+        assertThrows(Exception.class, () -> autograder.hasConstructorTest("NonExistent", new String[0], new String[0], false));
+    }
+
+    @Test
+    public void testHasConstructorTestThrowsExceptionIfArgTypesContainsNull()
+    {
+        String[] argTypes = new String[] {"int", null};
+        assertThrows(Exception.class, () -> autograder.hasConstructorTest("NonExistent", argTypes, new String[0], false));
+    }
+
+    @Test
+    public void testHasConstructorTestThrowsExceptionIfArgTypesContainsNullh()
+    {
+        String[] argTypes = new String[] {"int", null};
+        assertThrows(Exception.class, () -> autograder.hasConstructorTest("NonExistent", argTypes, new String[0], false));
     }
 
 }
