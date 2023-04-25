@@ -1,5 +1,7 @@
 import jh61b.grader.TestResult;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -8,17 +10,58 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("deprecation")
 public class AutograderTestBlackboxTest {
 
     private Autograder autograder;
 
     private String currentDir;
 
+    private static String INPUT_FILE_PATH;
+
+    private static String BICYCLE_FILE_PATH;
+
+    private static String SAMPLE_PROG_PATH;
+
+    private static String CLASS_SAMPLE_PATH;
+
+    @BeforeAll
+    public static void beforeAll()
+    {
+        File file = new File(AutograderTestBlackboxTest.class.getClassLoader().getResource("input.in").getFile());
+        INPUT_FILE_PATH = file.getAbsolutePath().replace(".in", "");
+
+        File bicycle = new File(AutograderTestBlackboxTest.class.getClassLoader().getResource("Bicycle.java").getFile());
+        BICYCLE_FILE_PATH = bicycle.getAbsolutePath();
+
+        File sample_prog = new File(AutograderTestBlackboxTest.class.getClassLoader().getResource("programSample.java").getFile());
+        SAMPLE_PROG_PATH = sample_prog.getAbsolutePath();
+
+        File class_sample = new File(AutograderTestBlackboxTest.class.getClassLoader().getResource("ClassSample.java").getFile());
+        CLASS_SAMPLE_PATH = class_sample.getAbsolutePath();
+    }
+
     @BeforeEach
     public void setup()
     {
         autograder = new Autograder();
         currentDir = System.getProperty("user.dir");
+
+        autograder.setScore(1);
+    }
+
+    private String removeExtension(String path)
+    {
+        int index = path.indexOf('.');
+        if (index < 0) return path;
+        return path.substring(0, index);
+    }
+
+    private String removeSample(String path)
+    {
+        int index = path.indexOf("Sample");
+        if (index < 0) return path;
+        return path.substring(0, index);
     }
 
     /*
@@ -28,6 +71,15 @@ public class AutograderTestBlackboxTest {
     public void testAddTestResultThrowsExceptionWhenArgsAreNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.addTestResult(null, false, null));
+        assertThrows(NullPointerException.class, () -> autograder.addTestResult(null));
+    }
+
+    /*
+     * Tests to see if the addTestResult method throws an exception if the parameters are null
+     */
+    @Test
+    public void testAddTestResultVariantThrowsExceptionWhenArgsAreNull()
+    {
         assertThrows(NullPointerException.class, () -> autograder.addTestResult(null));
     }
 
@@ -117,10 +169,23 @@ public class AutograderTestBlackboxTest {
      * valid (e.g. a java file) and uses an ArrayList
      */
     @Test
-    public void testClassDoesNotUseArrayListWorksOnValidFile()
+    public void testClassDoesNotUseArrayListReturnsFalseOnValidFile()
     {
         File file = new File(getClass().getClassLoader().getResource("uses_arraylist.java").getFile());
-        assertFalse(autograder.classDoesNotUseArrayList(file.getAbsolutePath()));
+        String path = file.getAbsolutePath().replace(".java", "");
+        assertFalse(autograder.classDoesNotUseArrayList(path));
+    }
+
+    /*
+     * Tests to see if the classDoesNotUseArrayList returns true if the argument is
+     * valid (e.g. a java file) and does not use an ArrayList
+     */
+    @Test
+    public void testClassDoesNotUseArrayListReturnsTrueOnValidFile()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        String path = file.getAbsolutePath().replace(".java", "");
+        assertTrue(autograder.classDoesNotUseArrayList(path));
     }
 
     /*
@@ -458,6 +523,14 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
+    public void testGetMethodThrowsExceptionIfArgTypesIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        String[] argTypes = null;
+        assertThrows(NullPointerException.class, () -> Autograder.getMethod(file.getAbsolutePath(), "setGear", argTypes));
+    }
+
+    @Test
     public void testGetMethodThrowsExceptionIfArgTypesContainsNull()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
@@ -759,6 +832,13 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
+    public void testHasConstructorTestVariantThrowsExceptionIfArgTypesIsNull()
+    {
+        Class<?>[] argTypes = null;
+        assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", argTypes, 0, false));
+    }
+
+    @Test
     public void testHasConstructorTestThrowsExceptionIfModifiersIsNullAndCheckModifiersIsTrue()
     {
         assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", new String[0], null, true));
@@ -775,5 +855,345 @@ public class AutograderTestBlackboxTest {
     {
         assertFalse(autograder.hasConstructorTest("Integer", new String[] {"Integer"}, new String[0], false));
     }
+
+    // add converter test
+    @Test
+    public void testAddConverterThrowsExceptionIfConverterIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> Autograder.addConverter(null));
+    }
+
+    // test run finished
+    @Test
+    public void testRunFinishedThrowsExceptionIfFilenameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testRunFinished(null));
+    }
+
+    @Test
+    public void testRunFinishedThrowsExceptionIfFilenameIsEmpty()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testRunFinished(""));
+    }
+
+    @Test
+    public void testRunFinishedThrowsExceptionIfFilenameIsInvalid()
+    {
+        assertThrows(IOException.class, () -> autograder.testRunFinished("invalid"));
+    }
+
+    @Test
+    public void testRunFinishedWorksIfFilenameIsValid()
+    {
+        // Get temp file
+        try {
+            File temp = File.createTempFile("prefix", "suffix");
+            assertDoesNotThrow(() -> autograder.testRunFinished(temp.getAbsolutePath()));
+        } catch (IOException e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void testStdOutDiffTestsThrowsExceptionIfNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTests(null, 1, false, true, 1));
+    }
+
+    @Test
+    public void testStdOutDiffTestsThrowsExceptionIfNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests("", 1, false, true, 1));
+    }
+
+    // std out diff tests
+
+    @Test
+    public void testStdOutDiffTestThrowsExceptionIfNameIsNull() throws IOException {
+        assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTest(null, INPUT_FILE_PATH, true, true));
+    }
+
+    @Test
+    public void testStdOutDiffTestThrowsExceptionIfNameIsEmpty() throws IOException {
+        assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTest("", INPUT_FILE_PATH, true, true));
+    }
+
+    @Test
+    public void testStdOutDiffTestThrowsExceptionIfInFileIsNull() throws IOException {
+        assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTest(removeSample(SAMPLE_PROG_PATH), null, true, true));
+    }
+
+    @Test
+    public void testStdOutDiffTestThrowsExceptionIfInFileIsEmpty() throws IOException {
+        assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTest(removeSample(SAMPLE_PROG_PATH), "", true, true));
+    }
+
+    @Test
+    public void testStdOutDiffTestThrowsExceptionIfProgramDoesNotHaveMain() throws IOException {
+        assertThrows(Exception.class, () -> autograder.stdOutDiffTest(removeSample(CLASS_SAMPLE_PATH), INPUT_FILE_PATH, true, true));
+    }
+
+    @Tag("Integration")
+    @Test
+    public void testStdOutDiffTestDoesNotThrowExceptionIfComparingTwoFiles() throws Exception {
+        assertDoesNotThrow(() -> autograder.stdOutDiffTest(INPUT_FILE_PATH, INPUT_FILE_PATH, false, true));
+        TestResult[] results = TestUtilities.getTestResults(autograder);
+        assertEquals(1, results.length);
+        assertEquals(1, results[0].getScore());
+    }
+
+    // overrided method test
+
+    @Test
+    public void testHasOverriddenMethodTestThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.hasOverriddenMethodTest(null,
+                "method", new String[0], "void", false, new String[0],
+                false));
+    }
+
+    @Test
+    public void testHasOverriddenMethodTestThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasOverriddenMethodTest("",
+                "method", new String[0], "void", false, new String[0],
+                false));
+    }
+
+    @Test
+    public void testHasOverriddenMethodTestThrowsExceptionIfMethodNameIsNull()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(NullPointerException.class, () -> autograder.hasOverriddenMethodTest(file.getAbsolutePath(),
+                null, new String[0], "void", false, new String[0],
+                false));
+    }
+
+    @Test
+    public void testHasOverriddenMethodTestThrowsExceptionIfMethodNameIsEmpty()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertThrows(IllegalArgumentException.class, () -> autograder.hasOverriddenMethodTest(file.getAbsolutePath(),
+                "", new String[0], "void", false, new String[0],
+                false));
+    }
+
+    //test checkstyle
+    @Test
+    public void testCheckstyleIfArgumentIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testCheckstyle(null));
+    }
+
+    @Test
+    public void testCheckstyleIfArgumentIsEmpty()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testCheckstyle(""));
+    }
+
+    // test constructor count
+    @Test
+    public void testConstructorCountIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testConstructorCount(null, 1));
+    }
+
+    @Test
+    public void testConstructorCountIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testConstructorCount("", 1));
+    }
+
+    @Test
+    public void testConstructorCountReturnsFalseIfDoesNotHaveSufficientConstructors()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertFalse(autograder.testConstructorCount(file.getAbsolutePath(), 2));
+    }
+
+    @Test
+    public void testConstructorCountReturnsTrueIfHasSufficientConstructorsAndProgramNameIsFile()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertTrue(autograder.testConstructorCount(file.getAbsolutePath(), 1));
+    }
+
+    @Test
+    public void testConstructorCountReturnsTrueIfHasSufficientConstructors()
+    {
+        assertTrue(autograder.testConstructorCount("java.lang.Integer", 2));
+    }
+
+    @Test
+    public void testMethodCountThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testMethodCount(null, 1, 0, false, false));
+    }
+
+    @Test
+    public void testMethodCountThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testMethodCount("", 1, 0, false, false));
+    }
+
+    @Test
+    public void testMethodCountReturnsTrueIfMeetsMethodCount()
+    {
+        assertTrue(autograder.testMethodCount("java.lang.Integer", 1, 0, false, true));
+    }
+
+    @Test
+    public void testMethodCountReturnsFalseIfDoesNotMeetMethodCount()
+    {
+        assertFalse(autograder.testMethodCount("java.lang.Integer", 100, 0, false, false));
+    }
+
+    @Test
+    public void testSetScoreWithNonPositiveValue()
+    {
+        autograder.setScore(-1);
+        assertEquals(0.1, autograder.currentScore(), 0.000001);
+    }
+
+    @Test
+    public void testSetScoreWorksProperly()
+    {
+        double scoreValue = 200;
+        autograder.setScore(scoreValue);
+        assertEquals(scoreValue, autograder.currentScore(), 0.001);
+    }
+
+    @Test
+    public void testSetVisibilityThrowsExceptionForInvalidValue()
+    {
+        assertThrows(Exception.class, () -> autograder.setVisibility(-1));
+    }
+
+    @Test
+    public void testGetVisibilityReturnsVisible()
+    {
+        autograder.setVisibility(0);
+        assertEquals("visible", autograder.getVisibility());
+    }
+
+    @Test
+    public void testGetVisibilityReturnsHidden()
+    {
+        autograder.setVisibility(1);
+        assertEquals("hidden", autograder.getVisibility());
+    }
+
+    @Test
+    public void testGetVisibilityReturnsAfterDueDate()
+    {
+        autograder.setVisibility(2);
+        assertEquals("after_due_date", autograder.getVisibility());
+    }
+
+    @Test
+    public void testGetVisibilityReturnsAfterPublished()
+    {
+        autograder.setVisibility(3);
+        assertEquals("after_published", autograder.getVisibility());
+    }
+
+    @Test
+    public void testLogFilesDiffTestsThrowsExceptionIfNameIsNull() throws IOException {
+        File temp = File.createTempFile("prefix", "suffix");
+        File temp2 = File.createTempFile("prefix", "suffix");
+
+        assertThrows(NullPointerException.class, () -> autograder.logFileDiffTests(null, 0,
+                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+    }
+
+    @Test
+    public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsNull() throws IOException {
+        File temp = File.createTempFile("prefix", "suffix");
+        File temp2 = File.createTempFile("prefix", "suffix");
+
+        assertThrows(NullPointerException.class, () -> autograder.logFileDiffTests(null, 0, 0,
+                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+    }
+
+    @Test
+    public void testLogFilesDiffTestsThrowsExceptionIfNameIsEmpty() throws IOException {
+        File temp = File.createTempFile("prefix", "suffix");
+        File temp2 = File.createTempFile("prefix", "suffix");
+
+        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTests("", 0,
+                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+    }
+
+    @Test
+    public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsEmpty() throws IOException {
+        File temp = File.createTempFile("prefix", "suffix");
+        File temp2 = File.createTempFile("prefix", "suffix");
+
+        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTests("", 0, 0,
+                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+    }
+
+    @Test
+    public void testLogFilesDiffTestThrowsExceptionIfNameIsNull() throws IOException {
+        File temp = File.createTempFile("prefix", "suffix");
+        File temp2 = File.createTempFile("prefix", "suffix");
+        File temp3 = File.createTempFile("prefix", "suffix");
+
+        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTest(null,
+                temp.getAbsolutePath(), temp2.getAbsolutePath(), temp3.getAbsolutePath(), false));
+    }
+
+    @Test
+    public void testLogFilesDiffTestThrowsExceptionIfNameIsEmpty() throws IOException {
+        File temp = File.createTempFile("prefix", "suffix");
+        File temp2 = File.createTempFile("prefix", "suffix");
+        File temp3 = File.createTempFile("prefix", "suffix");
+
+        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTest("",
+                temp.getAbsolutePath(), temp2.getAbsolutePath(), temp3.getAbsolutePath(), false));
+    }
+
+    @Test
+    public void testSetTimeoutThrowsExceptionIfValueInvalid()
+    {
+        assertThrows(Exception.class, () -> autograder.setTimeout(-1));
+    }
+
+    // test public instance variables
+
+    @Test
+    public void testPublicInstanceVariablesThrowsExceptionIfProgramNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.testPublicInstanceVariables(null));
+    }
+
+    @Test
+    public void testPublicInstanceVariablesThrowsExceptionIfProgramNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testPublicInstanceVariables(""));
+    }
+
+    @Test
+    public void testPublicInstanceVariablesThrowsExceptionIfProgramNameIsInvalid()
+    {
+        assertThrows(Exception.class, () -> autograder.testPublicInstanceVariables(currentDir));
+    }
+
+    @Test
+    public void testPublicInstanceVariablesReturnsTrueIfClassHasPublicVariables()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Airplane.java").getFile());
+        assertTrue(autograder.testPublicInstanceVariables(file.getAbsolutePath()));
+    }
+
+    @Test
+    public void testPublicInstanceVariablesReturnsFalseIfClassDoesNotHavePublicVariables()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertFalse(autograder.testPublicInstanceVariables(file.getAbsolutePath()));
+    }
+
+
+
 
 }
