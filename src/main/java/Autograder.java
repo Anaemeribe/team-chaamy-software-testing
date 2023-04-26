@@ -173,7 +173,7 @@ public class Autograder {
       
       System.out.println("{" + String.join(",", new String[] {
                String.format("\"tests\": [%s]", testsJSON)}) + "}");
-      System.exit(0);
+      //System.exit(0);
    }
 
    /** This is the wrap-up code of the autograder.
