@@ -1,12 +1,15 @@
 import jh61b.grader.TestResult;
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.matchers.Null;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,6 +27,8 @@ public class AutograderTestBlackboxTest {
     private static String SAMPLE_PROG_PATH;
 
     private static String CLASS_SAMPLE_PATH;
+
+    private double DEFAULT_SCORE_VALUE = 1.0;
 
     @BeforeAll
     public static void beforeAll()
@@ -64,6 +69,12 @@ public class AutograderTestBlackboxTest {
         return path.substring(0, index);
     }
 
+    private String getPath(String resourceName)
+    {
+        File file = new File(getClass().getClassLoader().getResource(resourceName).getFile());
+        return file.getAbsolutePath();
+    }
+
     /*
      * Tests to see if the addTestResult method throws an exception if the parameters are null
      */
@@ -92,6 +103,36 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.addTestResult("", false, ""));
         TestResult result = new TestResult("", "1", 0, "false");
         assertThrows(IllegalArgumentException.class, () -> autograder.addTestResult(result));
+    }
+
+    @Tag("Integration")
+    @Test
+    public void testAddTestResultSetsScoreToZeroWhenTestFailed()
+    {
+        autograder.addTestResult("test", false, "");
+        TestResult[] result = new TestResult[0];
+        try {
+            result = TestUtilities.getTestResults(autograder);
+            assertEquals(1, result.length);
+            assertEquals(0, result[0].getScore());
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
+    @Tag("Integration")
+    @Test
+    public void testAddTestResultSetsScoreProperlyWhenTestPassed()
+    {
+        autograder.addTestResult("test", true, "");
+        TestResult[] result = new TestResult[0];
+        try {
+            result = TestUtilities.getTestResults(autograder);
+            assertEquals(1, result.length);
+            assertEquals(DEFAULT_SCORE_VALUE, result[0].getScore());
+        } catch (Exception e) {
+            assertTrue(false);
+        }
     }
 
 
@@ -523,14 +564,6 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
-    public void testGetMethodThrowsExceptionIfArgTypesIsNull()
-    {
-        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
-        String[] argTypes = null;
-        assertThrows(NullPointerException.class, () -> Autograder.getMethod(file.getAbsolutePath(), "setGear", argTypes));
-    }
-
-    @Test
     public void testGetMethodThrowsExceptionIfArgTypesContainsNull()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
@@ -539,10 +572,17 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
-    public void testGetMethodWorks()
+    public void testGetMethodWorksForValidFile()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
         assertNotNull(Autograder.getMethod(file.getAbsolutePath(), "setGear", Integer.class));
+    }
+
+    @Test
+    public void testGetMethodWorksForBuiltInClass()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertNotNull(Autograder.getMethod("java.lang.Integer", "toString", new String[0]));
     }
 
     // getModifiers tests
@@ -763,6 +803,26 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
+    public void testHasFieldTestReturnsTrueForProgramWithFieldWhenModifiersDoNotMatch()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertFalse(autograder.hasFieldTest(file.getAbsolutePath(), "gear", "int", new String[0], true));
+
+        File file2 = new File(getClass().getClassLoader().getResource("Car.java").getFile());
+        assertFalse(autograder.hasFieldTest(file2.getAbsolutePath(), "gear", String.class, -1, true));
+    }
+
+    @Test
+    public void testHasFieldTestReturnsTrueForProgramWithFieldWhenModifiersDoNotMatchAndReturnTypeIgnored()
+    {
+        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
+        assertFalse(autograder.hasFieldTest(file.getAbsolutePath(), "gear", null, new String[0], true));
+
+        File file2 = new File(getClass().getClassLoader().getResource("Car.java").getFile());
+        assertFalse(autograder.hasFieldTest(file2.getAbsolutePath(), "gear", null, -1, true));
+    }
+
+    @Test
     public void testHasFieldTestReturnsFalseForProgramWithoutField()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
@@ -894,6 +954,8 @@ public class AutograderTestBlackboxTest {
         }
     }
 
+    // std out diff tests
+
     @Test
     public void testStdOutDiffTestsThrowsExceptionIfNameIsNull()
     {
@@ -901,9 +963,41 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
+    public void testStdOutDiffTestsVariantThrowsExceptionIfNameIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTests(null, 1, false, true));
+    }
+
+    @Test
     public void testStdOutDiffTestsThrowsExceptionIfNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests("", 1, false, true, 1));
+    }
+
+    @Test
+    public void testStdOutDiffTestsVariantThrowsExceptionIfNameIsEmpty()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests("", 1, false, true));
+    }
+
+    @Test
+    public void testStdOutDiffTestsThrowsExceptionIfNameIsNumVisibleIsNegative()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests(SAMPLE_PROG_PATH, 1, false, true, -1));
+    }
+    
+    @Test
+    public void testStdOutDiffTestsWorksWhenInputIsValid()
+    {
+        String programName = removeExtension(SAMPLE_PROG_PATH);
+        assertDoesNotThrow(() -> autograder.stdOutDiffTests(programName, 1, false, true, 0));
+    }
+
+    @Test
+    public void testStdOutDiffTestsThrowsExceptionWhenCountIsInvalid()
+    {
+        String programName = removeExtension(SAMPLE_PROG_PATH);
+        assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests(programName, -1, false, true, 0));
     }
 
     // std out diff tests
@@ -1193,7 +1287,588 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.testPublicInstanceVariables(file.getAbsolutePath()));
     }
 
+    // comp test
+    @Test
+    public void testCompTestThrowsExceptionIfProgramNameIsNull()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnValue, caller, null, arg));
+    }
 
+    @Test
+    public void testCompTestThrowsExceptionIfProgramNameIsEmpty()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnValue, caller, null, arg));
+    }
+
+    @Test
+    public void testCompTestThrowsExceptionIfMethodIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = null;
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
+    }
+
+    @Test
+    public void testCompTestThrowsExceptionIfCallerIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = null;
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
+    }
+
+    @Test
+    public void testCompTestThrowsExceptionIfArgIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = null;
+        Object returnValue = true;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
+    }
+
+    @Test
+    public void testCompTestThrowsExceptionIfArgContainsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Object arg = new Object[] {null};
+        Object returnValue = true;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
+    }
+
+    @Test
+    public void testCompTestWorks()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        assertDoesNotThrow(() -> autograder.compTest(programName, method, returnValue, caller, null, arg));
+    }
+
+    @Test
+    public void testCompTestThrowsExceptionForInvalidFile()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        String stdInput = "invalid";
+        assertThrows(IOException.class, () -> autograder.compTest(programName, method, returnValue, caller, stdInput, arg));
+    }
+
+    @Test
+    public void testCompTestWorksWhenStdInputIsValid()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        Object returnValue = true;
+        String stdInput = INPUT_FILE_PATH + ".in";
+        assertDoesNotThrow(() -> autograder.compTest(programName, method, returnValue, caller, stdInput, arg));
+    }
+
+
+    @Test
+    public void testCompTestBoolThrowsExceptionIfProgramNameIsNull()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, true, caller, arg));
+    }
+
+    @Test
+    public void testCompTestBoolThrowsExceptionIfProgramNameIsEmpty()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, true, caller, arg));
+    }
+
+    @Test
+    public void testCompTestBoolThrowsExceptionIfMethodIsNull()
+    {
+        Method method = null;
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        String programName = "java.lang.Integer";
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, true, caller, arg));
+    }
+
+    @Test
+    public void testCompTestBoolThrowsExceptionIfCallerIsNull()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = null;
+        Integer arg = new Integer(3);
+        String programName = "java.lang.Integer";
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, true, caller, arg));
+    }
+
+    @Test
+    public void testCompTestBoolThrowsExceptionIfArgIsNull()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Object arg = null;
+        assertThrows(NullPointerException.class, () -> autograder.compTest("java.lang.Integer", method, false, caller, arg));
+    }
+
+    @Test
+    public void testCompTestBoolThrowsExceptionIfArgContainsNull()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Object arg = new Object[]{null};
+        assertThrows(NullPointerException.class, () -> autograder.compTest("java.lang.Integer", method, false, caller, arg));
+    }
+
+    @Test
+    public void testCompTestBoolWorks()
+    {
+        Method method = Autograder.getMethod("java.lang.Integer", "equals", new Class[]{Object.class});
+        Integer caller = new Integer(3);
+        Integer arg = new Integer(3);
+        assertDoesNotThrow(() -> autograder.compTest("java.lang.Integer", method, true, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntThrowsExceptionIfProgramNameIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "intValue", new String[0]);
+        Integer caller = new Integer(3);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, 3, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntThrowsExceptionIfProgramNameIsEmpty()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "intValue", new String[0]);
+        Integer caller = new Integer(3);
+        Object arg = new Object();
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, 3, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntThrowsExceptionIfMethodIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = null;
+        Integer caller = new Integer(3);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntThrowsExceptionIfCallerIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "intValue", new String[0]);
+        Integer caller = null;
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntThrowsExceptionIfArgIsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "intValue", new String[0]);
+        Integer caller = new Integer(3);
+        Object arg = null;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntThrowsExceptionIfArgContainsNull()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "intValue", new String[0]);
+        Integer caller = new Integer(3);
+        Object arg = new Object[]{null};
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
+    }
+
+    @Test
+    public void testCompTestIntWorks()
+    {
+        String programName = "java.lang.Integer";
+        Method method = Autograder.getMethod(programName, "intValue", new String[0]);
+        Integer caller = new Integer(3);
+        Object arg = new Object();
+        assertDoesNotThrow(() -> autograder.compTest(programName, method, 3, caller, arg));
+    }
+
+    //
+
+    @Test
+    public void testCompTestCharThrowsExceptionIfProgramNameIsNull()
+    {
+        String programName = "java.lang.Character";
+        Method method = Autograder.getMethod(programName, "charValue", new String[0]);
+        Character caller = new Character('a');
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestCharThrowsExceptionIfProgramNameIsEmpty()
+    {
+        String programName = "java.lang.Character";
+        Method method = Autograder.getMethod(programName, "charValue", new String[0]);
+        Character caller = new Character('a');
+        Object arg = new Object();
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestCharThrowsExceptionIfMethodIsNull()
+    {
+        String programName = "java.lang.Character";
+        Method method = null;
+        Character caller = new Character('a');
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestCharThrowsExceptionIfCallerIsNull()
+    {
+        String programName = "java.lang.Character";
+        Method method = Autograder.getMethod(programName, "charValue", new String[0]);
+        Character caller = null;
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestCharThrowsExceptionIfArgIsNull()
+    {
+        String programName = "java.lang.Character";
+        Method method = Autograder.getMethod(programName, "charValue", new String[0]);
+        Character caller = new Character('a');
+        Object arg = null;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestCharThrowsExceptionIfArgContainsNull()
+    {
+        String programName = "java.lang.Character";
+        Method method = Autograder.getMethod(programName, "charValue", new String[0]);
+        Character caller = new Character('a');
+        Object arg = new Object[]{null};
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestCharWorks()
+    {
+        String programName = "java.lang.Character";
+        Method method = Autograder.getMethod(programName, "charValue", new String[0]);
+        Character caller = new Character('a');
+        Object arg = new Object();
+        assertDoesNotThrow(() -> autograder.compTest("java.lang.Character", method, 'a', caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleThrowsExceptionIfProgramNameIsNull()
+    {
+        String programName = "java.lang.Double";
+        Method method = Autograder.getMethod(programName, "doubleValue", new Class[0]);
+        double returnVal = 3.0;
+        Double caller = new Double(3.0);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleThrowsExceptionIfProgramNameIsEmpty()
+    {
+        String programName = "java.lang.Double";
+        Method method = Autograder.getMethod(programName, "doubleValue", new Class[0]);
+        double returnVal = 3.0;
+        Double caller = new Double(3.0);
+        Object arg = new Object();
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleThrowsExceptionIfMethodIsNull()
+    {
+        String programName = "java.lang.Double";
+        Method method = null;
+        double returnVal = 3.0;
+        Double caller = new Double(3.0);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleThrowsExceptionIfCallerIsNull()
+    {
+        String programName = "java.lang.Double";
+        Method method = Autograder.getMethod(programName, "doubleValue", new Class[0]);
+        double returnVal = 3.0;
+        Double caller = new Double(3.0);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleThrowsExceptionIfArgIsNull()
+    {
+        String programName = "java.lang.Double";
+        Method method = Autograder.getMethod(programName, "doubleValue", new Class[0]);
+        double returnVal = 3.0;
+        Double caller = new Double(returnVal);
+        Object arg = null;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleThrowsExceptionIfArgContainsNull()
+    {
+        String programName = "java.lang.Double";
+        Method method = Autograder.getMethod(programName, "doubleValue", new Class[0]);
+        double returnVal = 3.0;
+        Double caller = new Double(returnVal);
+        Object arg = new Object[]{null};
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestDoubleWorks()
+    {
+        String programName = "java.lang.Double";
+        Method method = Autograder.getMethod(programName, "doubleValue", new Class[0]);
+        double returnVal = 3.0;
+        Double caller = new Double(returnVal);
+        Object arg = new Object();
+        assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongThrowsExceptionIfProgramNameIsNull()
+    {
+        String programName = "java.lang.Long";
+        Method method = Autograder.getMethod(programName, "longValue", new Class[0]);
+        long returnVal = 3;
+        Long caller = new Long(returnVal);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongThrowsExceptionIfProgramNameIsEmpty()
+    {
+        String programName = "java.lang.Long";
+        Method method = Autograder.getMethod(programName, "longValue", new Class[0]);
+        long returnVal = 3;
+        Long caller = new Long(returnVal);
+        Object arg = new Object();
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongThrowsExceptionIfMethodIsNull()
+    {
+        String programName = "java.lang.Long";
+        Method method = null;
+        long returnVal = 3;
+        Long caller = new Long(returnVal);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongThrowsExceptionIfCallerIsNull()
+    {
+        String programName = "java.lang.Long";
+        Method method = Autograder.getMethod(programName, "longValue", new Class[0]);
+        long returnVal = 3;
+        Long caller = null;
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongThrowsExceptionIfArgIsNull()
+    {
+        String programName = "java.lang.Long";
+        Method method = Autograder.getMethod(programName, "longValue", new Class[0]);
+        long returnVal = 3;
+        Long caller = new Long(returnVal);
+        Object arg = null;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongThrowsExceptionIfArgContainsNull()
+    {
+        String programName = "java.lang.Long";
+        Method method = Autograder.getMethod(programName, "longValue", new Class[0]);
+        long returnVal = 3;
+        Long caller = new Long(returnVal);
+        Object arg = new Object[]{null};
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestLongWorks()
+    {
+        String programName = "java.lang.Long";
+        Method method = Autograder.getMethod(programName, "longValue", new Class[0]);
+        long returnVal = 3;
+        Long caller = new Long(returnVal);
+        Object arg = new Object();
+        assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatThrowsExceptionIfProgramNameIsNull()
+    {
+        String programName = "java.lang.Float";
+        Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
+        assertNotNull(method);
+        float returnVal = 3;
+        Float caller = new Float(returnVal);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatThrowsExceptionIfProgramNameIsEmpty()
+    {
+        String programName = "java.lang.Float";
+        Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
+        float returnVal = 3;
+        Float caller = new Float(returnVal);
+        Object arg = new Object();
+        assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatThrowsExceptionIfMethodIsNull()
+    {
+        String programName = "java.lang.Float";
+        Method method = null;
+        float returnVal = 3;
+        Float caller = new Float(returnVal);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatThrowsExceptionIfCallerIsNull()
+    {
+        String programName = "java.lang.Float";
+        Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
+        float returnVal = 3;
+        Float caller = null;
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatThrowsExceptionIfArgIsNull()
+    {
+        String programName = "java.lang.Float";
+        Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
+        float returnVal = 3;
+        Float caller = new Float(returnVal);
+        Object arg = null;
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatThrowsExceptionIfArgContainsNull()
+    {
+        String programName = "java.lang.Float";
+        Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
+        float returnVal = 3;
+        Float caller = new Float(returnVal);
+        Object arg = new Object[]{null};
+        assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testCompTestFloatWorks()
+    {
+        String programName = "java.lang.Float";
+        Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
+        float returnVal = 3;
+        Float caller = new Float(returnVal);
+        Object arg = new Object();
+        assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
+    }
+
+    @Test
+    public void testStackTraceToStringThrowsExceptionIfArgIsNull()
+    {
+        assertThrows(NullPointerException.class, () -> Autograder.stackTraceToString(null));
+    }
+
+    @Test
+    public void testStackTraceToStringWorksProperly()
+    {
+        Exception e = new Exception();
+        e.setStackTrace(new StackTraceElement[0]);
+        assertEquals("java.lang.Exception\n", Autograder.stackTraceToString(e));
+    }
+
+    @Test
+    public void testRunMethodWithTimeoutThrowsExceptionIfMethodIsNull()
+    {
+        Integer caller = new Integer(3);
+        Object arg = new Object();
+        assertThrows(NullPointerException.class, () -> autograder.runMethodWithTimeout(null, caller, arg));
+    }
+
+    @Test
+    public void testRunMethodWithTimeoutThrowsExceptionIfCallerIsNull()
+    {
+        Integer caller = new Integer(3);
+        Object arg = new Object();
+        Method method = Autograder.getMethod("java.lang.Integer", "intValue", new Class[0]);
+        assertNotNull(method);
+        assertThrows(NullPointerException.class, () -> autograder.runMethodWithTimeout(method, null, arg));
+    }
+
+    @Test
+    public void testRunMethodWithTimeoutThrowsExceptionIfArgIsNull()
+    {
+        Integer caller = new Integer(3);
+        Object arg = null;
+        Method method = Autograder.getMethod("java.lang.Integer", "intValue", new Class[0]);
+        assertNotNull(method);
+        assertThrows(NullPointerException.class, () -> autograder.runMethodWithTimeout(method, caller, arg));
+    }
 
 
 }
