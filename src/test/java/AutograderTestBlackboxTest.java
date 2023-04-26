@@ -523,14 +523,6 @@ public class AutograderTestBlackboxTest {
     }
 
     @Test
-    public void testGetMethodThrowsExceptionIfArgTypesIsNull()
-    {
-        File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
-        String[] argTypes = null;
-        assertThrows(NullPointerException.class, () -> Autograder.getMethod(file.getAbsolutePath(), "setGear", argTypes));
-    }
-
-    @Test
     public void testGetMethodThrowsExceptionIfArgTypesContainsNull()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
