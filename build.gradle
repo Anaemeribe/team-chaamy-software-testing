@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-//    id 'jacoco'
+    id 'jacoco'
     id 'info.solidsoft.pitest' version '1.5.2'
 }
 
@@ -14,9 +14,10 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'src/main/java/junit', include: ['*.jar'])
     implementation 'com.puppycrawl.tools:checkstyle:10.9.3' // https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    implementation 'org.mockito:mockito-core:3.7.7'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation "org.mockito:mockito-core:3.+"
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 pitest {
@@ -30,18 +31,18 @@ pitest {
 
 test {
     useJUnitPlatform()
-//    finalizedBy jacocoTestReport
+    finalizedBy jacocoTestReport
 }
 
-//jacoco {
-//    toolVersion = "0.8.8"
-//    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
-//}
+jacoco {
+    toolVersion = "0.8.8"
+    reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+}
 
-//jacocoTestReport {
-//    reports {
-//        xml.required = false
-//        csv.required = false
-//        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
-//    }
-//}
+jacocoTestReport {
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+}
