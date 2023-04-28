@@ -859,6 +859,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(IOException.class, () -> autograder.testCompiles(dir));
     }
 
+    /*
+     * Tests to see if the testCompiles method returns true for a valid Java file.
+     */
     @Test
     public void testCompilesReturnsTrueForValidJavaFile()
     {
@@ -866,6 +869,10 @@ public class AutograderTestBlackboxTest {
         assertTrue(autograder.testCompiles(file.getAbsolutePath()));
     }
 
+    /*
+     * Tests to see if the testCompiles method returns false for an invalid Java file
+     * (the file itself is a valid text file).
+     */
     @Test
     public void testCompilesReturnsFalseForInvalidJavaFile()
     {
@@ -873,26 +880,37 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.testCompiles(file.getAbsolutePath()));
     }
 
-    // test hasFieldTest
-
+    /*
+     * Tests to see if the hasFieldTest method throws an exception if the program name is null.
+     */
     @Test
     public void testHasFieldTestThrowsExceptionIfProgramNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.hasFieldTest(null, "gear", "int", new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method throws an exception if the program name is empty.
+     */
     @Test
     public void testHasFieldTestThrowsExceptionIfProgramNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.hasFieldTest("", "gear", "int", new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method throws an exception if the program name is invalid
+     * (i.e, not a valid file).
+     */
     @Test
     public void testHasFieldTestThrowsExceptionIfProgramNameIsInvalid()
     {
         assertThrows(IOException.class, () -> autograder.hasFieldTest(currentDir, "gear", "int", new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method returns true for a Java file with a valid field.
+     */
     @Test
     public void testHasFieldTestReturnsTrueForProgramWithField()
     {
@@ -903,8 +921,11 @@ public class AutograderTestBlackboxTest {
         assertTrue(autograder.hasFieldTest(file2.getAbsolutePath(), "gear", String.class, 0, false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method returns false for a field that does not match the specified modifiers.
+     */
     @Test
-    public void testHasFieldTestReturnsTrueForProgramWithFieldWhenModifiersDoNotMatch()
+    public void testHasFieldTestReturnsFalseForProgramWithFieldWhenModifiersDoNotMatch()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
         assertFalse(autograder.hasFieldTest(file.getAbsolutePath(), "gear", "int", new String[0], true));
@@ -913,8 +934,12 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.hasFieldTest(file2.getAbsolutePath(), "gear", String.class, -1, true));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method returns false for a field that does not match the specified modifiers
+     * and its field type is ignored.
+     */
     @Test
-    public void testHasFieldTestReturnsTrueForProgramWithFieldWhenModifiersDoNotMatchAndReturnTypeIgnored()
+    public void testHasFieldTestReturnsFalseForProgramWithFieldWhenModifiersDoNotMatchAndFieldTypeIgnored()
     {
         File file = new File(getClass().getClassLoader().getResource("Bicycle.java").getFile());
         assertFalse(autograder.hasFieldTest(file.getAbsolutePath(), "gear", null, new String[0], true));
@@ -923,6 +948,9 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.hasFieldTest(file2.getAbsolutePath(), "gear", null, -1, true));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method returns false for a field that is not in the file.
+     */
     @Test
     public void testHasFieldTestReturnsFalseForProgramWithoutField()
     {
@@ -930,6 +958,9 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.hasFieldTest(file.getAbsolutePath(), "name", "int", new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method throws an exception if the field name is null.
+     */
     @Test
     public void testHasFieldTestThrowsExceptionIfFieldNameIsNull()
     {
@@ -937,6 +968,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.hasFieldTest(file.getAbsolutePath(), null, "int", new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method throws an exception if the field name is empty.
+     */
     @Test
     public void testHasFieldTestThrowsExceptionIfFieldNameIsEmpty()
     {
@@ -944,6 +978,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.hasFieldTest(file.getAbsolutePath(), "", "int", new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method throws an exception if the field type is null.
+     */
     @Test
     public void testHasFieldTestDoesNotThrowExceptionIfFieldTypeIsNull()
     {
@@ -951,6 +988,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.hasFieldTest(file.getAbsolutePath(), "gear", null, new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasFieldTest method returns true for a field that exists in the file when
+     * checking for the field type is ignored.
+     */
     @Test
     public void testHasFieldTestReturnsTrueWhenNotCheckingForFieldType()
     {
@@ -958,26 +999,39 @@ public class AutograderTestBlackboxTest {
         assertTrue(() -> autograder.hasFieldTest(file.getAbsolutePath(), "gear", null, new String[0], false));
     }
 
-    // test hasConstructorTest
 
+    /*
+     * Tests to see if the hasConstructorTest method throws an exception if the class name is null.
+     */
     @Test
     public void testHasConstructorTestThrowsExceptionWhenClassNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest(null, new String[0], new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasConstructorTest method throws an exception if the class name is empty.
+     */
     @Test
     public void testHasConstructorTestThrowsExceptionWhenClassNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.hasConstructorTest("", new String[0], new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasConstructorTest method throws an exception if the class name is non-existent
+     * (i.e., not a valid class).
+     */
     @Test
     public void testHasConstructorTestThrowsExceptionWhenClassNameIsNonExistent()
     {
         assertThrows(Exception.class, () -> autograder.hasConstructorTest("NonExistent", new String[0], new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasConstructorTest method throws an exception if the argTypes array parameter
+     * contains null.
+     */
     @Test
     public void testHasConstructorTestThrowsExceptionIfArgTypesContainsNull()
     {
@@ -985,6 +1039,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", argTypes, new String[0], false));
     }
 
+    /*
+     * Tests to see if the hasConstructorTest method throws an exception if the argTypes parameter is null.
+     */
     @Test
     public void testHasConstructorTestThrowsExceptionIfArgTypesIsNull()
     {
@@ -992,6 +1049,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", argTypes, new String[0], false));
     }
 
+    /*
+     * Tests to see if a variant of the hasConstructorTest method throws an exception if the
+     * argTypes parameter is null.
+     */
     @Test
     public void testHasConstructorTestVariantThrowsExceptionIfArgTypesIsNull()
     {
@@ -999,50 +1060,75 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", argTypes, 0, false));
     }
 
+    /*
+     * Tests to see if a variant of the hasConstructorTest method throws an exception if the
+     * modifiers array parameter is null and the checkModifiers parameter is true.
+     */
     @Test
     public void testHasConstructorTestThrowsExceptionIfModifiersIsNullAndCheckModifiersIsTrue()
     {
         assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest("Integer", new String[0], null, true));
     }
 
+    /*
+     * Tests to see if a variant of the hasConstructorTest method returns true for a class with a valid constructor.
+     */
     @Test
     public void testHasConstructorReturnsTrueForClassWithValidConstructor()
     {
         assertTrue(autograder.hasConstructorTest("Integer", new String[] {"int"}, new String[0], false));
     }
 
+    /*
+     * Tests to see if a variant of the hasConstructorTest method returns false for a class
+     * that does not have a constructor that matches the parameters.
+     */
     @Test
-    public void testHasConstructorReturnsTrueForClassWithNonMatchingConstructor()
+    public void testHasConstructorReturnsFalseForClassWithNonMatchingConstructor()
     {
         assertFalse(autograder.hasConstructorTest("Integer", new String[] {"Integer"}, new String[0], false));
     }
 
-    // add converter test
+    /*
+     * Tests to see if the addConverter method throws an exception if the parameter is null.
+     */
     @Test
     public void testAddConverterThrowsExceptionIfConverterIsNull()
     {
         assertThrows(NullPointerException.class, () -> Autograder.addConverter(null));
     }
 
-    // test run finished
+    /*
+     * Tests to see if the runFinished method throws an exception if the filename is null.
+     */
     @Test
     public void testRunFinishedThrowsExceptionIfFilenameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.testRunFinished(null));
     }
 
+    /*
+     * Tests to see if the runFinished method throws an exception if the filename is empty.
+     */
     @Test
     public void testRunFinishedThrowsExceptionIfFilenameIsEmpty()
     {
         assertThrows(NullPointerException.class, () -> autograder.testRunFinished(""));
     }
 
+    /*
+     * Tests to see if the runFinished method throws an exception if the filename is invalid
+     * (i.e., not a valid file).
+     */
     @Test
     public void testRunFinishedThrowsExceptionIfFilenameIsInvalid()
     {
         assertThrows(IOException.class, () -> autograder.testRunFinished("invalid"));
     }
 
+    /*
+     * Tests to see if the runFinished method works for a valid file and does not throw an exception.
+     */
     @Test
     public void testRunFinishedWorksIfFilenameIsValid()
     {
@@ -1055,38 +1141,54 @@ public class AutograderTestBlackboxTest {
         }
     }
 
-    // std out diff tests
-
+    /*
+     * Tests to see if the stdOutDiffTests method throws an exception if the name is null.
+     */
     @Test
     public void testStdOutDiffTestsThrowsExceptionIfNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTests(null, 1, false, true, 1));
     }
 
+    /*
+     * Tests to see if a variant of the stdOutDiffTests method throws an exception if the name is null.
+     */
     @Test
     public void testStdOutDiffTestsVariantThrowsExceptionIfNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTests(null, 1, false, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTests method throws an exception if the name is empty.
+     */
     @Test
     public void testStdOutDiffTestsThrowsExceptionIfNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests("", 1, false, true, 1));
     }
 
+    /*
+     * Tests to see if a variant of the stdOutDiffTests method throws an exception if the name is empty.
+     */
     @Test
     public void testStdOutDiffTestsVariantThrowsExceptionIfNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests("", 1, false, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTests method throws an exception if the numVisible parameter is negative.
+     */
     @Test
     public void testStdOutDiffTestsThrowsExceptionIfNameIsNumVisibleIsNegative()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests(SAMPLE_PROG_PATH, 1, false, true, -1));
     }
-    
+
+    /*
+     * Tests to see if the stdOutDiffTests method works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testStdOutDiffTestsWorksWhenInputIsValid()
     {
@@ -1094,6 +1196,9 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.stdOutDiffTests(programName, 1, false, true, 0));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTests method throws an exception if the count parameter is invalid (i.e., negative).
+     */
     @Test
     public void testStdOutDiffTestsThrowsExceptionWhenCountIsInvalid()
     {
@@ -1101,33 +1206,49 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTests(programName, -1, false, true, 0));
     }
 
-    // std out diff tests
-
+    /*
+     * Tests to see if the stdOutDiffTest method throws an exception if the name is null.
+     */
     @Test
     public void testStdOutDiffTestThrowsExceptionIfNameIsNull() throws IOException {
         assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTest(null, INPUT_FILE_PATH, true, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTest method throws an exception if the name is empty.
+     */
     @Test
-    public void testStdOutDiffTestThrowsExceptionIfNameIsEmpty() throws IOException {
+    public void testStdOutDiffTestThrowsExceptionIfNameIsEmpty() {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTest("", INPUT_FILE_PATH, true, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTest method throws an exception if the inFile parameter is null.
+     */
     @Test
-    public void testStdOutDiffTestThrowsExceptionIfInFileIsNull() throws IOException {
+    public void testStdOutDiffTestThrowsExceptionIfInFileIsNull() {
         assertThrows(NullPointerException.class, () -> autograder.stdOutDiffTest(removeSample(SAMPLE_PROG_PATH), null, true, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTest method throws an exception if the inFile parameter is empty.
+     */
     @Test
-    public void testStdOutDiffTestThrowsExceptionIfInFileIsEmpty() throws IOException {
+    public void testStdOutDiffTestThrowsExceptionIfInFileIsEmpty() {
         assertThrows(IllegalArgumentException.class, () -> autograder.stdOutDiffTest(removeSample(SAMPLE_PROG_PATH), "", true, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTest method throws an exception if the program does not have a main method.
+     */
     @Test
-    public void testStdOutDiffTestThrowsExceptionIfProgramDoesNotHaveMain() throws IOException {
+    public void testStdOutDiffTestThrowsExceptionIfProgramDoesNotHaveMain() {
         assertThrows(Exception.class, () -> autograder.stdOutDiffTest(removeSample(CLASS_SAMPLE_PATH), INPUT_FILE_PATH, true, true));
     }
 
+    /*
+     * Tests to see if the stdOutDiffTest method does not throws an exception when comparing two valid files.
+     */
     @Tag("Integration")
     @Test
     public void testStdOutDiffTestDoesNotThrowExceptionIfComparingTwoFiles() throws Exception {
@@ -1137,8 +1258,10 @@ public class AutograderTestBlackboxTest {
         assertEquals(1, results[0].getScore());
     }
 
-    // overrided method test
 
+    /*
+     * Tests to see if the hasOverriddenMethodTest method throws an exception if the program name is null.
+     */
     @Test
     public void testHasOverriddenMethodTestThrowsExceptionIfProgramNameIsNull()
     {
@@ -1147,6 +1270,10 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
+    /*
+     * Tests to see if a variant of the hasOverriddenMethodTest method throws an exception if the program name
+     * is null.
+     */
     @Test
     public void testHasOverriddenMethodTestVariantThrowsExceptionIfProgramNameIsNull()
     {
@@ -1156,6 +1283,9 @@ public class AutograderTestBlackboxTest {
     }
 
 
+    /*
+     * Tests to see if the hasOverriddenMethodTest method throws an exception if the program name is empty.
+     */
     @Test
     public void testHasOverriddenMethodTestThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1164,6 +1294,10 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
+    /*
+     * Tests to see if a variant of the hasOverriddenMethodTest method throws an exception if the program name
+     * is empty.
+     */
     @Test
     public void testHasOverriddenMethodTestVariantThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1172,6 +1306,9 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
+    /*
+     * Tests to see if the hasOverriddenMethodTest method throws an exception if the method name parameter is null.
+     */
     @Test
     public void testHasOverriddenMethodTestThrowsExceptionIfMethodNameIsNull()
     {
@@ -1181,6 +1318,10 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
+    /*
+     * Tests to see if a variant of the hasOverriddenMethodTest method throws an exception if the
+     * method name parameter is null.
+     */
     @Test
     public void testHasOverriddenMethodTestVariantThrowsExceptionIfMethodNameIsNull()
     {
@@ -1190,6 +1331,9 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
+    /*
+     * Tests to see if the hasOverriddenMethodTest method throws an exception if the method name parameter is empty.
+     */
     @Test
     public void testHasOverriddenMethodTestThrowsExceptionIfMethodNameIsEmpty()
     {
@@ -1199,6 +1343,10 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
+    /*
+     * Tests to see if a variant of the hasOverriddenMethodTest method throws an exception if the
+     * method name parameter is empty.
+     */
     @Test
     public void testHasOverriddenMethodTestVariantThrowsExceptionIfMethodNameIsEmpty()
     {
@@ -1208,32 +1356,46 @@ public class AutograderTestBlackboxTest {
                 false));
     }
 
-    //test checkstyle
+    /*
+     * Tests to see if the testCheckstyle method throws an exception if the parameter is null.
+     */
     @Test
     public void testCheckstyleIfArgumentIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.testCheckstyle(null));
     }
 
+    /*
+     * Tests to see if the testCheckstyle method throws an exception if the parameter is empty.
+     */
     @Test
     public void testCheckstyleIfArgumentIsEmpty()
     {
         assertThrows(NullPointerException.class, () -> autograder.testCheckstyle(""));
     }
 
-    // test constructor count
+    /*
+     * Tests to see if the testConstructorCount method throws an exception if the programName parameter is null.
+     */
     @Test
-    public void testConstructorCountIfProgramNameIsNull()
+    public void testConstructorCountThrowsExceptionIfProgramNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.testConstructorCount(null, 1));
     }
 
+    /*
+     * Tests to see if the testConstructorCount method throws an exception if the programName parameter is empty.
+     */
     @Test
-    public void testConstructorCountIfProgramNameIsEmpty()
+    public void testConstructorCountThrowsExceptionIfProgramNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.testConstructorCount("", 1));
     }
 
+    /*
+     * Tests to see if the testConstructorCount method returns false if the class file does not have
+     * a sufficient number of constructors.
+     */
     @Test
     public void testConstructorCountReturnsFalseIfDoesNotHaveSufficientConstructors()
     {
@@ -1241,6 +1403,10 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.testConstructorCount(file.getAbsolutePath(), 2));
     }
 
+    /*
+     * Tests to see if the testConstructorCount method returns true if the class has
+     * a sufficient number of constructors and is from a file.
+     */
     @Test
     public void testConstructorCountReturnsTrueIfHasSufficientConstructorsAndProgramNameIsFile()
     {
@@ -1248,36 +1414,58 @@ public class AutograderTestBlackboxTest {
         assertTrue(autograder.testConstructorCount(file.getAbsolutePath(), 1));
     }
 
+    /*
+     * Tests to see if the testConstructorCount method returns true if the class has
+     * a sufficient number of constructors.
+     */
     @Test
     public void testConstructorCountReturnsTrueIfHasSufficientConstructors()
     {
         assertTrue(autograder.testConstructorCount("java.lang.Integer", 2));
     }
 
+    /*
+     * Tests to see if the testMethodCount method throws an exception if the programName
+     * is null.
+     */
     @Test
     public void testMethodCountThrowsExceptionIfProgramNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.testMethodCount(null, 1, 0, false, false));
     }
 
+    /*
+     * Tests to see if the testMethodCount method throws an exception if the programName
+     * is empty.
+     */
     @Test
     public void testMethodCountThrowsExceptionIfProgramNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.testMethodCount("", 1, 0, false, false));
     }
 
+    /*
+     * Tests to see if the testMethodCount method returns true if class has a sufficient number of methods.
+     */
     @Test
-    public void testMethodCountReturnsTrueIfMeetsMethodCount()
+    public void testMethodCountReturnsTrueIfClassHasSufficientMethodCount()
     {
         assertTrue(autograder.testMethodCount("java.lang.Integer", 1, 0, false, true));
     }
 
+    /*
+     * Tests to see if the testMethodCount method returns false if a class does not have a
+     * sufficient number of methods.
+     */
     @Test
     public void testMethodCountReturnsFalseIfDoesNotMeetMethodCount()
     {
         assertFalse(autograder.testMethodCount("java.lang.Integer", 100, 0, false, false));
     }
 
+    /*
+     * Tests to see if using setScore with a non-positive value sets the score to 0.1.
+     */
     @Test
     public void testSetScoreWithNonPositiveValue()
     {
@@ -1285,6 +1473,9 @@ public class AutograderTestBlackboxTest {
         assertEquals(0.1, autograder.currentScore(), 0.000001);
     }
 
+    /*
+     * Tests to see if the setScore method works for setting the score.
+     */
     @Test
     public void testSetScoreWorksProperly()
     {
@@ -1293,12 +1484,19 @@ public class AutograderTestBlackboxTest {
         assertEquals(scoreValue, autograder.currentScore(), 0.001);
     }
 
+    /*
+     * Tests to see if the setVisibility method throws an exception for an invalid
+     * parameter value (i.e., a value not mentioned in the docs).
+     */
     @Test
     public void testSetVisibilityThrowsExceptionForInvalidValue()
     {
         assertThrows(Exception.class, () -> autograder.setVisibility(-1));
     }
 
+    /*
+     * Tests to see if setVisibility(0) method makes getVisibility() return "visible"
+     */
     @Test
     public void testGetVisibilityReturnsVisible()
     {
@@ -1306,6 +1504,9 @@ public class AutograderTestBlackboxTest {
         assertEquals("visible", autograder.getVisibility());
     }
 
+    /*
+     * Tests to see if setVisibility(1) method makes getVisibility() return "hidden"
+     */
     @Test
     public void testGetVisibilityReturnsHidden()
     {
@@ -1313,6 +1514,9 @@ public class AutograderTestBlackboxTest {
         assertEquals("hidden", autograder.getVisibility());
     }
 
+    /*
+     * Tests to see if setVisibility(2) method makes getVisibility() return "after_due_date"
+     */
     @Test
     public void testGetVisibilityReturnsAfterDueDate()
     {
@@ -1320,6 +1524,9 @@ public class AutograderTestBlackboxTest {
         assertEquals("after_due_date", autograder.getVisibility());
     }
 
+    /*
+     * Tests to see if setVisibility(3) method makes getVisibility() return "after_published"
+     */
     @Test
     public void testGetVisibilityReturnsAfterPublished()
     {
@@ -1327,6 +1534,9 @@ public class AutograderTestBlackboxTest {
         assertEquals("after_published", autograder.getVisibility());
     }
 
+    /*
+     * Tests to see if logFileDiffTests throws an exception if the name is null.
+     */
     @Test
     public void testLogFilesDiffTestsThrowsExceptionIfNameIsNull() throws IOException {
         File temp = File.createTempFile("prefix", "suffix");
@@ -1336,8 +1546,11 @@ public class AutograderTestBlackboxTest {
                 temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
     }
 
+    /*
+     * Tests to see if a variant of the logFileDiffTests method throws an exception if the name is null.
+     */
     @Test
-    public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsNull() throws IOException {
+    public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsNull() {
         File temp = File.createTempFile("prefix", "suffix");
         File temp2 = File.createTempFile("prefix", "suffix");
 
@@ -1345,8 +1558,11 @@ public class AutograderTestBlackboxTest {
                 temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
     }
 
+    /*
+     * Tests to see if the logFileDiffTests method throws an exception if the name is empty.
+     */
     @Test
-    public void testLogFilesDiffTestsThrowsExceptionIfNameIsEmpty() throws IOException {
+    public void testLogFilesDiffTestsThrowsExceptionIfNameIsEmpty() {
         File temp = File.createTempFile("prefix", "suffix");
         File temp2 = File.createTempFile("prefix", "suffix");
 
@@ -1354,8 +1570,11 @@ public class AutograderTestBlackboxTest {
                 temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
     }
 
+    /*
+     * Tests to see if a variant of the logFileDiffTests method throws an exception if the name is empty.
+     */
     @Test
-    public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsEmpty() throws IOException {
+    public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsEmpty() {
         File temp = File.createTempFile("prefix", "suffix");
         File temp2 = File.createTempFile("prefix", "suffix");
 
