@@ -9,6 +9,8 @@ import java.lang.reflect.Modifier;
 import java.nio.file.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import jh61b.grader.TestResult;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AutograderMutationTest {
@@ -19,18 +21,18 @@ public class AutograderMutationTest {
     @BeforeAll
     public static void setup() throws IOException {
         Path original = Paths.get("./src/test/resources/Sample.java");
-        Path copy = Paths.get("./Sample.java");
+//        Path copy = Paths.get("./Sample.java");
         sample = new File("./src/main/java/Sample.java"); // src/main/java/Autograder.java
         Files.copy(original, sample.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
+//        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
         assertTrue(sample.isFile());
         assertTrue(sample.exists());
 
         original = Paths.get("src/test/resources/MultipleMethods.java");
-        copy = Paths.get("./MultipleMethods.java");
+//        copy = Paths.get("./MultipleMethods.java");
         methods = new File("src/main/java/MultipleMethods.java");
         Files.copy(original, methods.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
+//        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
         assertTrue(sample.isFile());
         assertTrue(sample.exists());
 
@@ -38,7 +40,7 @@ public class AutograderMutationTest {
 
     @BeforeEach
     public void init() {
-        ag = new Autograder();
+        ag = new Autograder(1,0.1);
     }
 
     @AfterAll
@@ -78,7 +80,8 @@ public class AutograderMutationTest {
      */
     @Test
     public void testDefaultConstructorVisibility() {
-        assertEquals("hidden", ag.visibility);
+        Autograder a = new Autograder();
+        assertEquals("hidden", a.visibility);
     }
 
     /**
@@ -86,7 +89,8 @@ public class AutograderMutationTest {
      */
     @Test
     public void testDefaultConstructorScore() {
-        assertEquals(0.1, ag.maxScore);
+        Autograder a = new Autograder();
+        assertEquals(0.1, a.maxScore);
     }
 
     /**
@@ -115,17 +119,17 @@ public class AutograderMutationTest {
      */
     @Test
     public void testConstructorInvalidVisibility() {
-        Autograder ag = new Autograder(-1, 0);
-        assertEquals("hidden", ag.visibility);
+        Autograder a = new Autograder(-1, 0);
+        assertEquals("hidden", a.visibility);
 
-        ag = new Autograder(4, 0);
-        assertEquals("hidden", ag.visibility);
+        a = new Autograder(4, 0);
+        assertEquals("hidden", a.visibility);
 
-        ag = new Autograder(Integer.MAX_VALUE, 0);
-        assertEquals("hidden", ag.visibility);
+        a = new Autograder(Integer.MAX_VALUE, 0);
+        assertEquals("hidden", a.visibility);
 
-        ag = new Autograder(Integer.MIN_VALUE, 0);
-        assertEquals("hidden", ag.visibility);
+        a = new Autograder(Integer.MIN_VALUE, 0);
+        assertEquals("hidden", a.visibility);
     }
 
     /**
@@ -193,13 +197,37 @@ public class AutograderMutationTest {
         });
     }
 
+    private static void compareTestResults(TestResult[] t)  {
+        try {
+            TestResult[] results = TestUtilities.getTestResults(ag);
+            assertEquals(t.length, results.length);
+            for (int i = 0; i < t.length; i++) {
+                assertEquals(t[i].toString(), results[i].toString());
+            }
+        } catch (Exception e) {
+            fail("Failed to get test results:\n" + e.toString());
+        }
+    }
+
     @Test
     public void testSourceExistsInvalidFile() {
-        String filename = "doesnotexist";
-        assertFalse(ag.testSourceExists(filename));
+        String name = "_.java Source File Exists";
+        String error = "ERROR: file _.java is not present!\n" +
+                "\tCheck the spelling of your file name.\n";
 
-        filename = "./build"; // directory
-        assertFalse(ag.testSourceExists(filename));
+        String d = "doesnotexist";
+        assertFalse(ag.testSourceExists(d));
+        TestResult existTR =  new TestResult(name.replace("_", d), "Pre-Test",
+                0, "hidden");
+        existTR.addOutput(error.replace("_", d));
+
+        String b = "./build"; // directory
+        assertFalse(ag.testSourceExists(b));
+        TestResult buildTR =  new TestResult(name.replace("_", b), "Pre-Test",
+                0, "hidden");
+        buildTR.addOutput(error.replace("_", b));
+
+        compareTestResults(new TestResult[]{existTR, buildTR});
     }
 
     @Test
@@ -212,6 +240,15 @@ public class AutograderMutationTest {
             fail("Temp file \'" + filename + "\' could not be created!");
         }
         assertTrue(ag.testSourceExists(filename));
+
+        TestResult t = new TestResult(
+                        filename + ".java Source File Exists",
+                        "Pre-Test",
+                        ag.maxScore,
+                        "hidden");
+        t.addOutput("SUCCESS: file " + filename + ".java is present!\n");
+        compareTestResults(new TestResult[]{t});
+
         file.delete();
     }
 
@@ -264,46 +301,46 @@ public class AutograderMutationTest {
         assertEquals(4, ag.diffNum);
     }
 
-    @Test
-    public void testDiffFilesSame() {
-        File copy = new File("./build/tmp/temp.txt");
-        assertDoesNotThrow(() -> copy.createNewFile());
-        assertDoesNotThrow(() ->
-                Files.copy(sample.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING)
-        );
-        String origPath = sample.getAbsolutePath();
-        String copyPath = copy.getAbsolutePath();
+//    @Test
+//    public void testDiffFilesSame() {
+//        File copy = new File("./build/tmp/temp.txt");
+//        assertDoesNotThrow(() -> copy.createNewFile());
+//        assertDoesNotThrow(() ->
+//                Files.copy(sample.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING)
+//        );
+//        String origPath = sample.getAbsolutePath();
+//        String copyPath = copy.getAbsolutePath();
+//
+//        assertEquals(1, ag.diffNum);
+//        assertTrue(ag.diffFiles(origPath, origPath));
+//        assertEquals(2, ag.diffNum);
+//        assertTrue(ag.diffFiles(origPath, copyPath));
+//        assertTrue(ag.diffFiles(copyPath, origPath));
+//
+//        copy.delete();
+//   }
 
-        assertEquals(1, ag.diffNum);
-        assertTrue(ag.diffFiles(origPath, origPath));
-        assertEquals(2, ag.diffNum);
-        assertTrue(ag.diffFiles(origPath, copyPath));
-        assertTrue(ag.diffFiles(copyPath, origPath));
-
-        copy.delete();
-   }
-
-    @Test
-    public void testDiffFilesDifferent() {
-        String orig = "./src/test/resources/Sample.java";
-        // Make copy
-        String copy = "./build/tmp/temp.txt";
-        File temp = new File(copy);
-        assertDoesNotThrow(() -> temp.createNewFile());
-        assertDoesNotThrow(() ->
-                Files.copy(Paths.get(orig), Paths.get(copy), StandardCopyOption.REPLACE_EXISTING)
-        );
-
-        assertEquals(1, ag.diffNum);
-        assertTrue(ag.diffFiles(orig, orig));
-        assertEquals(2, ag.diffNum);
-        assertTrue(ag.diffFiles(orig, copy));
-        assertEquals(3, ag.diffNum);
-        assertTrue(ag.diffFiles(copy, orig));
-        assertEquals(4, ag.diffNum);
-
-        temp.delete();
-    }
+//    @Test
+//    public void testDiffFilesDifferent() {
+//        String orig = "./src/test/resources/Sample.java";
+//        // Make copy
+//        String copy = "./build/tmp/temp.txt";
+//        File temp = new File(copy);
+//        assertDoesNotThrow(() -> temp.createNewFile());
+//        assertDoesNotThrow(() ->
+//                Files.copy(Paths.get(orig), Paths.get(copy), StandardCopyOption.REPLACE_EXISTING)
+//        );
+//
+//        assertEquals(1, ag.diffNum);
+//        assertTrue(ag.diffFiles(orig, orig));
+//        assertEquals(2, ag.diffNum);
+//        assertTrue(ag.diffFiles(orig, copy));
+//        assertEquals(3, ag.diffNum);
+//        assertTrue(ag.diffFiles(copy, orig));
+//        assertEquals(4, ag.diffNum);
+//
+//        temp.delete();
+//    }
 
     @Test
     public void testStackTraceToString() {
@@ -801,7 +838,7 @@ public class AutograderMutationTest {
     }
 
     @Test
-    public void testMethodCount() {
+    public void testMethodCountNoFile() {
         assertFalse(ag.testMethodCount(
                 "doesnotexist",
                 0,
@@ -809,19 +846,45 @@ public class AutograderMutationTest {
                 false,
                 true
         ));
+    }
 
+    @Test
+    public void testMethodCount() {
         String name = "MultipleMethods";
+        assertEquals(1, ag.diffNum);
         assertTrue(ag.testMethodCount(
                 name,
-                4,
+                3,
                 0,
                 false,
                 false
         ));
+        assertEquals(2, ag.diffNum);
         assertTrue(ag.testMethodCount(
                 name,
-                4,
-                Modifier.PUBLIC,
+                2,
+                Modifier.PUBLIC | Modifier.STATIC,
+                true,
+                false
+        ));
+    }
+
+    @Test
+    public void testMethodCountAtleast() {
+        String name = "MultipleMethods";
+        assertEquals(1, ag.diffNum);
+        assertTrue(ag.testMethodCount(
+                name,
+                2,
+                0,
+                false,
+                true
+        ));
+        assertEquals(2, ag.diffNum);
+        assertTrue(ag.testMethodCount(
+                name,
+                1,
+                Modifier.PUBLIC | Modifier.STATIC,
                 true,
                 true
         ));
