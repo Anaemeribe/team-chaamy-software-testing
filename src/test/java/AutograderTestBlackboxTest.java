@@ -113,9 +113,8 @@ public class AutograderTestBlackboxTest {
     public void testAddTestResultSetsScoreToZeroWhenTestFailed()
     {
         autograder.addTestResult("test", false, "");
-        TestResult[] result = new TestResult[0];
         try {
-            result = TestUtilities.getTestResults(autograder);
+            TestUtilities.CustomTestResult[] result = TestUtilities.getTestResults(autograder);
             assertEquals(1, result.length);
             assertEquals(0, result[0].getScore());
         } catch (Exception e) {
@@ -132,9 +131,8 @@ public class AutograderTestBlackboxTest {
     public void testAddTestResultSetsScoreProperlyWhenTestPassed()
     {
         autograder.addTestResult("test", true, "");
-        TestResult[] result = new TestResult[0];
         try {
-            result = TestUtilities.getTestResults(autograder);
+            TestUtilities.CustomTestResult[] result = TestUtilities.getTestResults(autograder);
             assertEquals(1, result.length);
             assertEquals(DEFAULT_SCORE_VALUE, result[0].getScore());
         } catch (Exception e) {
@@ -1253,7 +1251,7 @@ public class AutograderTestBlackboxTest {
     @Test
     public void testStdOutDiffTestDoesNotThrowExceptionIfComparingTwoFiles() throws Exception {
         assertDoesNotThrow(() -> autograder.stdOutDiffTest(INPUT_FILE_PATH, INPUT_FILE_PATH, false, true));
-        TestResult[] results = TestUtilities.getTestResults(autograder);
+        TestUtilities.CustomTestResult[] results = TestUtilities.getTestResults(autograder);
         assertEquals(1, results.length);
         assertEquals(1, results[0].getScore());
     }
