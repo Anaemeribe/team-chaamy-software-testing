@@ -1,14 +1,19 @@
 import brandon.convert.ClassConverter;
 import jh61b.grader.TestResult;
+import net.sf.saxon.expr.Component;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import project_2.PrivateCar;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Method;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.TimeoutException;
 
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -174,18 +179,18 @@ public class AutograderWhiteboxTest {
 
     @Test
     public void testCompileFaultyFile() {
-        File tempFile = new File(getClass().getClassLoader().getResource("project_2/FaultyFile.java").getFile());
+        File tempFile = new File(getClass().getClassLoader().getResource("FaultyFile.java").getFile());
         assertNotEquals(0, autograder.compile(tempFile.getAbsolutePath()));
     }
 
     @Test
     public void testTestCompilesPasses() {
-        assertTrue(autograder.testCompiles("./src/test/resources/project_2/Compliant"));
+        assertTrue(autograder.testCompiles("./src/test/resources/Compliant"));
     }
 
     @Test
     public void testTestCompilesFailsFaultyFile() {
-        assertFalse(autograder.testCompiles("./src/test/resources/project_2/FaultyFile"));
+        assertFalse(autograder.testCompiles("./src/test/resources/FaultyFile"));
     }
 
     @Test
@@ -219,7 +224,7 @@ public class AutograderWhiteboxTest {
 
     @Test
     public void testTestCheckstyleCodeWithNoStyleErrors() {
-        File tempFile = new File(getClass().getClassLoader().getResource("project_2/Compliant.java").getFile());
+        File tempFile = new File("./src/main/java/project_2/Car");
         autograder.testCheckstyle(tempFile.getAbsolutePath());
         assertDoesNotThrow(() -> autograder.testRunFinished());
         assertTrue(outputStreamCaptor.toString().trim().contains("passed checkstyle with no warnings"));
@@ -227,7 +232,7 @@ public class AutograderWhiteboxTest {
 
     @Test
     public void testTestCheckstyleCodeWithIOException() {
-        File tempFile = new File(getClass().getClassLoader().getResource("project_2/IOExceptionDemo.java").getFile());
+        File tempFile = new File("./src/main/java/project_2/IOExceptionSample.java");
         autograder.testCheckstyle(tempFile.getAbsolutePath());
         assertDoesNotThrow(() -> autograder.testRunFinished());
         assertTrue(outputStreamCaptor.toString().trim().contains("passed checkstyle with no warnings"));
@@ -303,14 +308,13 @@ public class AutograderWhiteboxTest {
 
     @Test
     public void testLogFileDiffTestsPasses() {
-        File logFile = new File(getClass().getClassLoader().getResource("project_2/Proj2B_Comp_0.in").getFile());
+        File logFile = new File("./src/main/java/project_2/Proj2B_Comp_0.in");
         assertDoesNotThrow(() -> autograder.logFileDiffTests(testFile.getAbsolutePath(), 1, "student", logFile.getAbsolutePath(),  true));
     }
 
     @Test
     public void testLogFileDiffTestsNonExistentFile() {
-        File logFile = new File(getClass().getClassLoader().getResource("non-file").getFile());
-        assertDoesNotThrow(() -> autograder.logFileDiffTests(testFile.getAbsolutePath(), 1, "student", logFile.getAbsolutePath(),  true));
+        assertDoesNotThrow(() -> autograder.logFileDiffTests(testFile.getAbsolutePath(), 1, "student", "non_existent",  true));
     }
 
     @Test
@@ -335,4 +339,293 @@ public class AutograderWhiteboxTest {
 
         autograder.compTest(programName, method, ret, caller, stdinput, args);
     }
+
+    @Test
+    public void testCompTestInt() throws Exception {
+        class MyClass {
+            public int myMethod(int i) {
+                return i;
+            }
+        }
+
+        String programName = "MyProgram";
+        Method method = MyClass.class.getMethod("myMethod", int.class);
+        int ret = 5;
+        Object caller = new MyClass();
+        int[] args = {5};
+
+        autograder.compTest(programName, method, ret, caller, args);
+    }
+
+    @Test
+    public void testClassDoesNotUsePackagesFileExistsPasses() {
+        assertTrue(autograder.classDoesNotUsePackages("./src/main/java/project_2/Car"));
+    }
+
+    @Test
+    public void testClassDoesNotUsePackagesFileExistsFail() {
+        assertFalse(autograder.classDoesNotUsePackages(testFile.getAbsolutePath()));
+    }
+
+    @Test
+    public void testClassDoesNotUsePackagesFileDoesNotExists() {
+        assertThrows(FileNotFoundException.class, () -> autograder.classDoesNotUsePackages("non-existent"));
+    }
+
+    @Test
+    public void testClassDoesNotUsePackagesFileIsNull() {
+        assertThrows(NullPointerException.class, () -> autograder.classDoesNotUsePackages(null));
+    }
+
+    @Test
+    public void testClassDoesNotHaveMultipleScannersOneScanner() {
+        assertTrue(autograder.classDoesNotHaveMultipleScanners("./src/main/java/project_2/Proj2BSample"));
+    }
+
+    @Test
+    public void testClassDoesNotHaveMultipleScannersNoScanner() {
+        assertTrue(autograder.classDoesNotHaveMultipleScanners("./src/main/java/project_2/IOExceptionSample"));
+    }
+
+    @Test
+    public void testClassDoesNotHaveMultipleScannersMultipleScanners() {
+        assertFalse(autograder.classDoesNotHaveMultipleScanners("./src/main/java/project_2/MultipleScanners"));
+    }
+
+    @Test
+    public void testClassDoesNotHaveMultipleScannersNullFile() {
+        assertThrows(NullPointerException.class, () -> autograder.classDoesNotHaveMultipleScanners(null));
+    }
+
+    private static Method myMethod() throws TimeoutException{
+        while(true) {
+            continue;
+        }
+    }
+
+    @Test
+    public void testHasFieldTestPass() {
+        assertTrue(autograder.hasFieldTest("java.lang.Integer", "MAX_VALUE", int.class, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasFieldTestFailNoField() {
+        assertFalse(autograder.hasFieldTest("java.lang.Integer", "MAX_STRING", int.class, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasFieldTestFailWrongType() {
+        assertFalse(autograder.hasFieldTest("java.lang.Integer", "MAX_VALUE", String.class, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasFieldTestFailWrongModifierCheckModifier() {
+        assertFalse(autograder.hasFieldTest("java.lang.Integer", "MAX_VALUE", int.class, Modifier.PRIVATE, true));
+    }
+
+    @Test
+    public void testHasFieldTestRightModifierButCheckModfierTrue() {
+        assertFalse(autograder.hasFieldTest("java.lang.Integer", "MAX_VALUE", int.class, 17, true));
+    }
+
+    @Test
+    public void testTestPublicInstanceVariablesFails() {
+        assertFalse(autograder.testPublicInstanceVariables("java.lang.Integer"));
+    }
+
+    @Test
+    public void testTestPublicInstanceVariablesPasses() {
+        assertTrue(autograder.testPublicInstanceVariables("java.lang.Class"));
+    }
+
+    @Test
+    public void testTestPublicInstanceVariablesNull() {
+        assertThrows(NullPointerException.class, () -> autograder.testPublicInstanceVariables(null));
+    }
+
+    @Test
+    public void testTestPublicInstanceVariablesFailsClassNotExist() {
+        assertFalse(autograder.testPublicInstanceVariables("non-existent-class"));
+    }
+
+    @Test
+    public void testConstructorCountPasses() {
+        assertTrue(autograder.testConstructorCount("java.lang.Integer", 2));
+    }
+
+    @Test
+    public void testConstructorCountLess() {
+        assertFalse(autograder.testConstructorCount("java.lang.Integer", 1));
+    }
+
+    @Test
+    public void testConstructorCountMore() {
+        assertFalse(autograder.testConstructorCount("java.lang.Integer", 3));
+    }
+
+    @Test
+    public void testComparisonTestJumpEcrypt() {
+        assertDoesNotThrow(() -> autograder.comparisonTest("./src/main/java/project_2/Proj2B", "./src/main/java/project_2/Proj2B_Comp_0.in", autograder));
+    }
+
+    @Test
+    public void testComparisonTestValidateMessage() {
+        assertDoesNotThrow(() -> autograder.comparisonTest("./src/main/java/project_2/Proj2B", "./src/main/java/project_2/Proj2B_Comp_1.in", autograder));
+    }
+
+    @Test
+    public void testComparisonTestMirrorEcrypt() {
+        assertDoesNotThrow(() -> autograder.comparisonTest("./src/main/java/project_2/Proj2B", "./src/main/java/project_2/Proj2B_Comp_8.in", autograder));
+    }
+
+    @Test
+    public void testComparisonTestShiftEcrypt() {
+        assertDoesNotThrow(() -> autograder.comparisonTest("./src/main/java/project_2/Proj2B", "./src/main/java/project_2/Proj2B_Comp_9.in", autograder));
+    }
+
+    @Test
+    public void testComparisonTestShiftEcrypt2() {
+        assertDoesNotThrow(() -> autograder.comparisonTest("./src/main/java/project_2/Proj2B", "./src/main/java/project_2/Proj2B.input", autograder));
+    }
+
+    @Test
+    public void testComparisonTestNonExistingFile() {
+        assertDoesNotThrow(() -> autograder.comparisonTest("Non-existing", "./src/main/java/project_2/Proj2B_Comp_9.in", autograder));
+    }
+
+    @Test
+    public void testHasConstructorTest() {
+        assertTrue(autograder.hasConstructorTest("java.lang.Integer", new String[] {"int"}, new String[] {"public"}, true));
+    }
+
+    @Test
+    public void testHasConstructorTestFailNoClass() {
+        assertFalse(autograder.hasConstructorTest("non-exists", new String[] {"int"}, new String[] {"public"}, true));
+    }
+
+    @Test
+    public void testHasConstructorTestNoArgTypes() {
+        assertFalse(autograder.hasConstructorTest("java.lang.Integer", new String[] {"String"}, new String[] {"public"}, true));
+    }
+
+    @Test
+    public void testHasConstructorTestNoModifier() {
+        assertFalse(autograder.hasConstructorTest("java.lang.Integer", new String[] {"int"}, new String[] {"something-new"}, true));
+    }
+
+    @Test
+    public void testHasConstructorTestNoModifierButCheckIsFalse() {
+        assertTrue(autograder.hasConstructorTest("java.lang.Integer", new String[] {"int"}, new String[] {"something-new"}, false));
+    }
+
+    @Test
+    public void testHasConstructorTestNullClass() {
+        assertThrows(NullPointerException.class, () -> autograder.hasConstructorTest(null, new String[] {"int"}, new String[] {"public"}, true));
+    }
+
+    @Test
+    public void testHasConstructorTestNullTypes() {
+        assertFalse(autograder.hasConstructorTest("java.lang.Integer", null, new String[] {"public"}, true));
+    }
+
+    @Test
+    public void testHasConstructorTestPassNullTypes() {
+        assertTrue(autograder.hasConstructorTest("java.lang.Class", new String[] {"int"}, new String[] {"public"}, true));
+    }
+
+    @Test
+    public void testHasConstructorNullModifiers() {
+        assertFalse(autograder.hasConstructorTest("java.lang.Integer", new String[] {"int"}, null, true));
+    }
+
+    @Test
+    public void testJunitTests() {
+        assertDoesNotThrow(() -> autograder.junitTests("src/main/java/project_2/Car"));
+    }
+
+    @Test
+    public void testGetMethodPass() {
+        assertDoesNotThrow(() -> autograder.getMethod("src/main/java/project_2/Car", "getName", new String[]{}));
+    }
+
+    @Test
+    public void testGetMethodFail() {
+        assertDoesNotThrow(() -> autograder.getMethod("src/main/java/project_2/Car", "getColor", new String[] {""}));
+    }
+
+    @Test
+    public void testHasMethodsTest() {
+        assertTrue(autograder.hasMethodsTest("src/main/java/project_2/PrivateCar", "src/main/java/project_2/Car", false));
+    }
+
+    @Test
+    public void testClassDoesNotUseArrayListPass() {
+        assertTrue(autograder.classDoesNotUseArrayList("./src/main/java/project_2/Car"));
+    }
+
+    @Test
+    public void testClassDoesNotUseArrayListFail() {
+        assertFalse(autograder.classDoesNotUseArrayList("./src/main/java/project_2/UsesList"));
+    }
+
+    @Test
+    public void testClassDoesNotUseArrayListNonExistent() {
+        assertThrows(FileNotFoundException.class, ()-> autograder.classDoesNotUseArrayList("non-existent"));
+    }
+
+    @Test
+    public void testHasMethodTestPass() {
+        assertTrue(autograder.hasMethodTest("java.lang.Integer", "compareTo", new Class<?>[] {Integer.class}, int.class, true, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasMethodTestFailMethodNotExist() {
+        assertFalse(autograder.hasMethodTest("java.lang.Integer", "not-exist", new Class<?>[] {Integer.class}, int.class, true, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasMethodTestFailWrongType() {
+        assertFalse(autograder.hasMethodTest("java.lang.Integer", "compareTo", new Class<?>[] {String.class}, int.class, true, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasMethodTestFailWrongReturnType() {
+        assertFalse(autograder.hasMethodTest("java.lang.Integer", "compareTo", new Class<?>[] {Integer.class}, String.class, true, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasMethodTestFailWrongReturnTypeButNoCheck() {
+        assertTrue(autograder.hasMethodTest("java.lang.Integer", "compareTo", new Class<?>[] {Integer.class}, String.class, false, Modifier.PUBLIC, false));
+    }
+
+    @Test
+    public void testHasMethodTestFailWrongModifier() {
+        assertFalse(autograder.hasMethodTest("java.lang.Integer", "compareTo", new Class<?>[] {Integer.class}, int.class, true, Modifier.PRIVATE, true));
+    }
+
+    @Test
+    public void testHasMethodTestFailWrongModifierButNoCheck() {
+        assertTrue(autograder.hasMethodTest("java.lang.Integer", "compareTo", new Class<?>[] {Integer.class}, int.class, true, Modifier.PRIVATE, false));
+    }
+
+    @Test
+    public void testComparisonTest() {
+        assertDoesNotThrow(()-> autograder.comparisonTest("./src/main/java/project_2/Proj2B", "./src/main/java/project_2/Proj2B_Comp_0.in", autograder));
+    }
+
+    @Test
+    public void testCompTestNew() {
+        try {
+            Method m = Integer.class.getMethod("sum", int.class, int.class);
+            assertDoesNotThrow(() -> autograder.compTest("java.lang.Integer", m, 5, new int[] {1,2}));
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
+
+//    @Test
+//    public void testRunMethodWithTimeoutThrowsException() throws TimeoutException {
+//        assertThrows(TimeoutException.class, () -> autograder.runMethodWithTimeout(myMethod(), autograder, null));
+//    }
 }
