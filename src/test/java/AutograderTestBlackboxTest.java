@@ -52,7 +52,7 @@ public class AutograderTestBlackboxTest {
         autograder = new Autograder();
         currentDir = System.getProperty("user.dir");
 
-        autograder.setScore(1);
+        autograder.setScore(DEFAULT_SCORE_VALUE);
     }
 
     private String removeExtension(String path)
@@ -1483,6 +1483,26 @@ public class AutograderTestBlackboxTest {
     }
 
     /*
+     * Tests to see if the setScore method throws an exception when the argument is NaN.
+     */
+    @Test
+    public void testSetScoreThrowsExceptionForNanInput()
+    {
+        double scoreValue = Double.NaN;
+        assertThrows(IllegalArgumentException.class, () -> autograder.setScore(scoreValue));
+    }
+
+    /*
+     * Tests to see if the setScore method throws an exception when the argument is positive infinity.
+     */
+    @Test
+    public void testSetScoreThrowsExceptionForInfinityInput()
+    {
+        double scoreValue = Double.POSITIVE_INFINITY;
+        assertThrows(IllegalArgumentException.class, () -> autograder.setScore(scoreValue));
+    }
+
+    /*
      * Tests to see if the setVisibility method throws an exception for an invalid
      * parameter value (i.e., a value not mentioned in the docs).
      */
@@ -2327,7 +2347,7 @@ public class AutograderTestBlackboxTest {
         String programName = "java.lang.Float";
         Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
         assertNotNull(method);
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = new Float(returnVal);
         Object arg = new Object();
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
@@ -2342,7 +2362,7 @@ public class AutograderTestBlackboxTest {
     {
         String programName = "java.lang.Float";
         Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = new Float(returnVal);
         Object arg = new Object();
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
@@ -2357,7 +2377,7 @@ public class AutograderTestBlackboxTest {
     {
         String programName = "java.lang.Float";
         Method method = null;
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = new Float(returnVal);
         Object arg = new Object();
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
@@ -2372,7 +2392,7 @@ public class AutograderTestBlackboxTest {
     {
         String programName = "java.lang.Float";
         Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = null;
         Object arg = new Object();
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
@@ -2387,7 +2407,7 @@ public class AutograderTestBlackboxTest {
     {
         String programName = "java.lang.Float";
         Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = new Float(returnVal);
         Object arg = null;
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
@@ -2402,7 +2422,7 @@ public class AutograderTestBlackboxTest {
     {
         String programName = "java.lang.Float";
         Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = new Float(returnVal);
         Object arg = new Object[]{null};
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
@@ -2417,7 +2437,7 @@ public class AutograderTestBlackboxTest {
     {
         String programName = "java.lang.Float";
         Method method = Autograder.getMethod(programName, "floatValue", new Class[0]);
-        float returnVal = 3;
+        float returnVal = 3.0f;
         Float caller = new Float(returnVal);
         Object arg = new Object();
         assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
@@ -2514,6 +2534,25 @@ public class AutograderTestBlackboxTest {
     }
 
     /*
+     * Tests to see if the testSortedCheckstyle method throws an exception if the errValue is NaN.
+     */
+    @Test
+    public void testSortedCheckstyleThrowsExceptionIfErrValueIsNan()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testSortedCheckstyle(BICYCLE_FILE_PATH, Double.NaN, false));
+    }
+
+    /*
+     * Tests to see if the testSortedCheckstyle method throws an exception if the errValue is infinity.
+     */
+    @Test
+    public void testSortedCheckstyleThrowsExceptionIfErrValueIsInfinity()
+    {
+        assertThrows(IllegalArgumentException.class, () -> autograder.testSortedCheckstyle(BICYCLE_FILE_PATH, Double.POSITIVE_INFINITY, false));
+        assertThrows(IllegalArgumentException.class, () -> autograder.testSortedCheckstyle(BICYCLE_FILE_PATH, Double.NEGATIVE_INFINITY, false));
+    }
+
+    /*
      * Tests to see if the testSortedCheckstyle method does not throw an exception if the parameters are valid.
      */
     @Test
@@ -2521,6 +2560,30 @@ public class AutograderTestBlackboxTest {
     {
         assertDoesNotThrow(() -> autograder.testSortedCheckstyle(BICYCLE_FILE_PATH, 0, false));
     }
+
+    /*
+     * Tests to see if the Autograder class constructor throws an exception if the visibility parameter is invalid
+     * (i.e., a value not mentioned in documentation).
+     */
+    @Test
+    public void testAutograderConstructorThrowsExceptionForInvalidVisibility()
+    {
+        assertThrows(IllegalArgumentException.class, () -> new Autograder(-1, 1));
+    }
+
+    /*
+     * Tests to see if the Autograder class constructor throws an exception if the score parameter is invalid
+     * (e.g., negative, infinity, or NaN).
+     */
+    @Test
+    public void testAutograderConstructorThrowsExceptionForInvalidScore()
+    {
+        assertThrows(IllegalArgumentException.class, () -> new Autograder(0, -1));
+        assertThrows(IllegalArgumentException.class, () -> new Autograder(0, Double.NEGATIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class, () -> new Autograder(0, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class, () -> new Autograder(0, Double.NaN));
+    }
+
 
 
 }
