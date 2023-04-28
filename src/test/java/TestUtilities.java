@@ -47,5 +47,9 @@ public class TestUtilities {
         public double getScore() {
             return score;
         }
+
+        public String toString() {
+            return("name: " + name + ", number: " + number + ", score: " + score + ", max_score: " + maxScore + ", detailed output if any (on next line): \n"  + output);
+        }
     }
 }
