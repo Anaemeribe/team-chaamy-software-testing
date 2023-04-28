@@ -1551,11 +1551,16 @@ public class AutograderTestBlackboxTest {
      */
     @Test
     public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsNull() {
-        File temp = File.createTempFile("prefix", "suffix");
-        File temp2 = File.createTempFile("prefix", "suffix");
+        try {
+            File temp = File.createTempFile("prefix", "suffix");
+            File temp2 = File.createTempFile("prefix", "suffix");
 
-        assertThrows(NullPointerException.class, () -> autograder.logFileDiffTests(null, 0, 0,
-                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+            assertThrows(NullPointerException.class, () -> autograder.logFileDiffTests(null, 0, 0,
+                    temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /*
@@ -1563,11 +1568,15 @@ public class AutograderTestBlackboxTest {
      */
     @Test
     public void testLogFilesDiffTestsThrowsExceptionIfNameIsEmpty() {
-        File temp = File.createTempFile("prefix", "suffix");
-        File temp2 = File.createTempFile("prefix", "suffix");
+        try {
+            File temp = File.createTempFile("prefix", "suffix");
+            File temp2 = File.createTempFile("prefix", "suffix");
 
-        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTests("", 0,
-                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+            assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTests("", 0,
+                    temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /*
@@ -1575,59 +1584,94 @@ public class AutograderTestBlackboxTest {
      */
     @Test
     public void testLogFilesDiffTestsVariantThrowsExceptionIfNameIsEmpty() {
-        File temp = File.createTempFile("prefix", "suffix");
-        File temp2 = File.createTempFile("prefix", "suffix");
+        try {
+            File temp = File.createTempFile("prefix", "suffix");
+            File temp2 = File.createTempFile("prefix", "suffix");
 
-        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTests("", 0, 0,
-                temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+            assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTests("", 0, 0,
+                    temp.getAbsolutePath(), temp2.getAbsolutePath(), false));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /*
+     * Tests to see if the logFileDiffTest method throws an exception if the name is null.
+     */
     @Test
-    public void testLogFilesDiffTestThrowsExceptionIfNameIsNull() throws IOException {
-        File temp = File.createTempFile("prefix", "suffix");
-        File temp2 = File.createTempFile("prefix", "suffix");
-        File temp3 = File.createTempFile("prefix", "suffix");
+    public void testLogFilesDiffTestThrowsExceptionIfNameIsNull() {
+        try {
+            File temp = File.createTempFile("prefix", "suffix");
+            File temp2 = File.createTempFile("prefix", "suffix");
+            File temp3 = File.createTempFile("prefix", "suffix");
 
-        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTest(null,
-                temp.getAbsolutePath(), temp2.getAbsolutePath(), temp3.getAbsolutePath(), false));
+            assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTest(null,
+                    temp.getAbsolutePath(), temp2.getAbsolutePath(), temp3.getAbsolutePath(), false));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /*
+     * Tests to see if the logFileDiffTest method throws an exception if the name is empty.
+     */
     @Test
-    public void testLogFilesDiffTestThrowsExceptionIfNameIsEmpty() throws IOException {
-        File temp = File.createTempFile("prefix", "suffix");
-        File temp2 = File.createTempFile("prefix", "suffix");
-        File temp3 = File.createTempFile("prefix", "suffix");
+    public void testLogFilesDiffTestThrowsExceptionIfNameIsEmpty() {
+        try {
+            File temp = File.createTempFile("prefix", "suffix");
+            File temp2 = File.createTempFile("prefix", "suffix");
+            File temp3 = File.createTempFile("prefix", "suffix");
 
-        assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTest("",
-                temp.getAbsolutePath(), temp2.getAbsolutePath(), temp3.getAbsolutePath(), false));
+            assertThrows(IllegalArgumentException.class, () -> autograder.logFileDiffTest("",
+                    temp.getAbsolutePath(), temp2.getAbsolutePath(), temp3.getAbsolutePath(), false));
+        } catch (IOException e) {
+            assertTrue(false);
+        }
     }
 
+    /*
+     * Tests to see if the setTimeout method throws an exception if the parameter value is invalid
+     * (i.e., a negative timeout).
+     */
     @Test
     public void testSetTimeoutThrowsExceptionIfValueInvalid()
     {
         assertThrows(Exception.class, () -> autograder.setTimeout(-1));
     }
 
-    // test public instance variables
 
+    /*
+     * Tests to see if the testPublicInstanceVariables method throws an exception if the programName is null.
+     */
     @Test
     public void testPublicInstanceVariablesThrowsExceptionIfProgramNameIsNull()
     {
         assertThrows(NullPointerException.class, () -> autograder.testPublicInstanceVariables(null));
     }
 
+    /*
+     * Tests to see if the testPublicInstanceVariables method throws an exception if the programName is empty.
+     */
     @Test
     public void testPublicInstanceVariablesThrowsExceptionIfProgramNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.testPublicInstanceVariables(""));
     }
 
+    /*
+     * Tests to see if the testPublicInstanceVariables method throws an exception if the programName is invalid
+     * (i.e., not a valid file).
+     */
     @Test
     public void testPublicInstanceVariablesThrowsExceptionIfProgramNameIsInvalid()
     {
         assertThrows(Exception.class, () -> autograder.testPublicInstanceVariables(currentDir));
     }
 
+    /*
+     * Tests to see if the testPublicInstanceVariables method returns true if the
+     * class has public instance variables.
+     */
     @Test
     public void testPublicInstanceVariablesReturnsTrueIfClassHasPublicVariables()
     {
@@ -1635,6 +1679,10 @@ public class AutograderTestBlackboxTest {
         assertTrue(autograder.testPublicInstanceVariables(file.getAbsolutePath()));
     }
 
+    /*
+     * Tests to see if the testPublicInstanceVariables method returns false if the
+     * class does not have public instance variables.
+     */
     @Test
     public void testPublicInstanceVariablesReturnsFalseIfClassDoesNotHavePublicVariables()
     {
@@ -1642,7 +1690,9 @@ public class AutograderTestBlackboxTest {
         assertFalse(autograder.testPublicInstanceVariables(file.getAbsolutePath()));
     }
 
-    // comp test
+    /*
+     * Tests to see if the compTest method throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestThrowsExceptionIfProgramNameIsNull()
     {
@@ -1653,6 +1703,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1664,6 +1717,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestThrowsExceptionIfMethodIsNull()
     {
@@ -1675,6 +1731,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestThrowsExceptionIfCallerIsNull()
     {
@@ -1686,6 +1745,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestThrowsExceptionIfArgIsNull()
     {
@@ -1697,6 +1759,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestThrowsExceptionIfArgContainsNull()
     {
@@ -1708,6 +1773,9 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method works and does not throw an exception for valid parameters.
+     */
     @Test
     public void testCompTestWorks()
     {
@@ -1719,6 +1787,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest(programName, method, returnValue, caller, null, arg));
     }
 
+    /*
+     * Tests to see if the compTest method throws an exception if the value for the stdInput parameter is
+     * an invalid file.
+     */
     @Test
     public void testCompTestThrowsExceptionForInvalidFile()
     {
@@ -1731,6 +1803,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IOException.class, () -> autograder.compTest(programName, method, returnValue, caller, stdInput, arg));
     }
 
+    /*
+     * Tests to see if the compTest method works and does not throw an exception when the value
+     * the stdInput parameter is valid and not null because that indicates that it is not ignored.
+     */
     @Test
     public void testCompTestWorksWhenStdInputIsValid()
     {
@@ -1744,6 +1820,10 @@ public class AutograderTestBlackboxTest {
     }
 
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestBoolThrowsExceptionIfProgramNameIsNull()
     {
@@ -1753,6 +1833,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, true, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestBoolThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1762,6 +1846,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, true, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestBoolThrowsExceptionIfMethodIsNull()
     {
@@ -1772,6 +1860,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, true, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestBoolThrowsExceptionIfCallerIsNull()
     {
@@ -1782,6 +1874,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, true, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestBoolThrowsExceptionIfArgIsNull()
     {
@@ -1791,6 +1887,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest("java.lang.Integer", method, false, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestBoolThrowsExceptionIfArgContainsNull()
     {
@@ -1800,6 +1900,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest("java.lang.Integer", method, false, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a boolean as one of its inputs)
+     * works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testCompTestBoolWorks()
     {
@@ -1809,6 +1913,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest("java.lang.Integer", method, true, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestIntThrowsExceptionIfProgramNameIsNull()
     {
@@ -1819,6 +1927,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, 3, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestIntThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1829,6 +1941,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, 3, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestIntThrowsExceptionIfMethodIsNull()
     {
@@ -1839,6 +1955,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestIntThrowsExceptionIfCallerIsNull()
     {
@@ -1849,6 +1969,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestIntThrowsExceptionIfArgIsNull()
     {
@@ -1859,6 +1983,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestIntThrowsExceptionIfArgContainsNull()
     {
@@ -1869,6 +1997,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 3, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has an int as one of its inputs)
+     * works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testCompTestIntWorks()
     {
@@ -1879,8 +2011,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest(programName, method, 3, caller, arg));
     }
 
-    //
-
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestCharThrowsExceptionIfProgramNameIsNull()
     {
@@ -1891,6 +2025,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestCharThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1901,6 +2039,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestCharThrowsExceptionIfMethodIsNull()
     {
@@ -1911,6 +2053,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestCharThrowsExceptionIfCallerIsNull()
     {
@@ -1921,6 +2067,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestCharThrowsExceptionIfArgIsNull()
     {
@@ -1931,6 +2081,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestCharThrowsExceptionIfArgContainsNull()
     {
@@ -1941,6 +2095,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a char as one of its inputs)
+     * works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testCompTestCharWorks()
     {
@@ -1951,6 +2109,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest("java.lang.Character", method, 'a', caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestDoubleThrowsExceptionIfProgramNameIsNull()
     {
@@ -1962,6 +2124,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestDoubleThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -1973,6 +2139,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestDoubleThrowsExceptionIfMethodIsNull()
     {
@@ -1984,6 +2154,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestDoubleThrowsExceptionIfCallerIsNull()
     {
@@ -1995,6 +2169,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestDoubleThrowsExceptionIfArgIsNull()
     {
@@ -2006,6 +2184,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestDoubleThrowsExceptionIfArgContainsNull()
     {
@@ -2017,6 +2199,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a double as one of its inputs)
+     * works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testCompTestDoubleWorks()
     {
@@ -2028,6 +2214,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestLongThrowsExceptionIfProgramNameIsNull()
     {
@@ -2039,6 +2229,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestLongThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -2050,6 +2244,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestLongThrowsExceptionIfMethodIsNull()
     {
@@ -2061,6 +2259,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestLongThrowsExceptionIfCallerIsNull()
     {
@@ -2072,6 +2274,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestLongThrowsExceptionIfArgIsNull()
     {
@@ -2083,6 +2289,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestLongThrowsExceptionIfArgContainsNull()
     {
@@ -2094,6 +2304,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a long as one of its inputs)
+     * works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testCompTestLongWorks()
     {
@@ -2105,6 +2319,10 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * throws an exception if the program name is null.
+     */
     @Test
     public void testCompTestFloatThrowsExceptionIfProgramNameIsNull()
     {
@@ -2117,6 +2335,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(null, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * throws an exception if the program name is empty.
+     */
     @Test
     public void testCompTestFloatThrowsExceptionIfProgramNameIsEmpty()
     {
@@ -2128,6 +2350,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(IllegalArgumentException.class, () -> autograder.compTest("", method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * throws an exception if the method parameter is null.
+     */
     @Test
     public void testCompTestFloatThrowsExceptionIfMethodIsNull()
     {
@@ -2139,6 +2365,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * throws an exception if the caller parameter is null.
+     */
     @Test
     public void testCompTestFloatThrowsExceptionIfCallerIsNull()
     {
@@ -2150,6 +2380,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * throws an exception if the arg parameter is null.
+     */
     @Test
     public void testCompTestFloatThrowsExceptionIfArgIsNull()
     {
@@ -2161,6 +2395,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * throws an exception if the arg parameter is an array containing null.
+     */
     @Test
     public void testCompTestFloatThrowsExceptionIfArgContainsNull()
     {
@@ -2172,6 +2410,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if a variant of the compTest method (that has a float as one of its inputs)
+     * works and does not throw an exception when the parameters are valid.
+     */
     @Test
     public void testCompTestFloatWorks()
     {
@@ -2183,12 +2425,18 @@ public class AutograderTestBlackboxTest {
         assertDoesNotThrow(() -> autograder.compTest(programName, method, returnVal, caller, arg));
     }
 
+    /*
+     * Tests to see if the stackTraceToString method throws an exception if the parameter is null.
+     */
     @Test
     public void testStackTraceToStringThrowsExceptionIfArgIsNull()
     {
         assertThrows(NullPointerException.class, () -> Autograder.stackTraceToString(null));
     }
 
+    /*
+     * Tests to see if the stackTraceToString method works properly for a valid exception.
+     */
     @Test
     public void testStackTraceToStringWorksProperly()
     {
@@ -2197,6 +2445,10 @@ public class AutograderTestBlackboxTest {
         assertEquals("java.lang.Exception\n", Autograder.stackTraceToString(e));
     }
 
+    /*
+     * Tests to see if the runMethodWithTimeout method throws an exception if the method
+     * parameter is null.
+     */
     @Test
     public void testRunMethodWithTimeoutThrowsExceptionIfMethodIsNull()
     {
@@ -2205,6 +2457,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.runMethodWithTimeout(null, caller, arg));
     }
 
+    /*
+     * Tests to see if the runMethodWithTimeout method throws an exception if the caller
+     * parameter is null.
+     */
     @Test
     public void testRunMethodWithTimeoutThrowsExceptionIfCallerIsNull()
     {
@@ -2215,6 +2471,10 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.runMethodWithTimeout(method, null, arg));
     }
 
+    /*
+     * Tests to see if the runMethodWithTimeout method throws an exception if the args
+     * parameter is null.
+     */
     @Test
     public void testRunMethodWithTimeoutThrowsExceptionIfArgIsNull()
     {
@@ -2225,26 +2485,39 @@ public class AutograderTestBlackboxTest {
         assertThrows(NullPointerException.class, () -> autograder.runMethodWithTimeout(method, caller, arg));
     }
 
-    // test sorted checkstyle
-
+    /*
+     * Tests to see if the testSortedCheckstyle method throws an exception if the programName
+     * parameter is null.
+     */
     @Test
     public void testSortedCheckstyleThrowsExceptionIfProgramNameIsNull()
     {
        assertThrows(NullPointerException.class, () -> autograder.testSortedCheckstyle(null, 0, false));
     }
 
+    /*
+     * Tests to see if the testSortedCheckstyle method throws an exception if the programName
+     * parameter is empty.
+     */
     @Test
     public void testSortedCheckstyleThrowsExceptionIfProgramNameIsEmpty()
     {
         assertThrows(IllegalArgumentException.class, () -> autograder.testSortedCheckstyle("", 0, false));
     }
 
+    /*
+     * Tests to see if the testSortedCheckstyle method does not throw an exception if the errValue is negative.
+     * This is because deducting negative points is equivalent to adding points.
+     */
     @Test
     public void testSortedCheckstyleWithNegativeErrValue()
     {
         assertDoesNotThrow(() -> autograder.testSortedCheckstyle(BICYCLE_FILE_PATH, -1, false));
     }
 
+    /*
+     * Tests to see if the testSortedCheckstyle method does not throw an exception if the parameters are valid.
+     */
     @Test
     public void testSortedCheckstyleWorks()
     {
