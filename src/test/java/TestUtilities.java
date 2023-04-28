@@ -18,7 +18,7 @@ public class TestUtilities {
     }
 
 
-    public static TestResult[] getTestResults(Autograder autograder) throws Exception {
+    public static CustomTestResult[] getTestResults(Autograder autograder) throws Exception {
         System.setOut(outStream);
         autograder.testRunFinished();
         System.setOut(System.out);
@@ -32,6 +32,24 @@ public class TestUtilities {
     }
 
     public class TestResultHolder {
-        public TestResult[] tests;
+        public CustomTestResult[] tests;
+    }
+
+    public class CustomTestResult {
+        private String name;
+        private String number;
+        private double maxScore;
+        private double score;
+        private String visibility;
+
+        private String output;
+
+        public double getScore() {
+            return score;
+        }
+
+        public String toString() {
+            return("name: " + name + ", number: " + number + ", score: " + score + ", max_score: " + maxScore + ", detailed output if any (on next line): \n"  + output);
+        }
     }
 }
