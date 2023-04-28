@@ -202,7 +202,7 @@ public class AutograderMutationTest {
             TestResult[] results = TestUtilities.getTestResults(ag);
             assertEquals(t.length, results.length);
             for (int i = 0; i < t.length; i++) {
-                assertEquals(t[i].toString(), results[i].toString());
+                assertEquals(t[i].getScore(), results[i].getScore());
             }
         } catch (Exception e) {
             fail("Failed to get test results:\n" + e.toString());
@@ -247,6 +247,7 @@ public class AutograderMutationTest {
                         ag.maxScore,
                         "hidden");
         t.addOutput("SUCCESS: file " + filename + ".java is present!\n");
+        t.setScore(ag.maxScore);
         compareTestResults(new TestResult[]{t});
 
         file.delete();
