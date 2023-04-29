@@ -15,6 +15,11 @@ public class MultipleMethods {
         return n;
     }
 
+    @Override
+    public String toString() {
+        return "MultipleMethods";
+    }
+
     public static void main(String[] args) {
         if (exists()) {
             System.out.println(repeat("Hello world"));

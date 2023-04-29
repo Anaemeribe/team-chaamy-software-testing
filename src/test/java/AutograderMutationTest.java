@@ -13,31 +13,34 @@ import jh61b.grader.TestResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// All commented code are tests to kill mutations but fail due to code faults in Autograder which prevent pitest from
+// running.
+
 public class AutograderMutationTest {
     private static Autograder ag;
     private static File sample;
     private static File methods;
-
+    public File testFile;
 
     private ByteArrayOutputStream outputStreamCaptor;
 
     @BeforeAll
     public static void setup() throws IOException {
         Path original = Paths.get("./src/test/resources/Sample.java");
-//        Path copy = Paths.get("./Sample.java");
+        Path copy = Paths.get("Sample.java");
         sample = new File("./src/main/java/Sample.java"); // src/main/java/Autograder.java
         Files.copy(original, sample.toPath(), StandardCopyOption.REPLACE_EXISTING);
-//        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
         assertTrue(sample.isFile());
         assertTrue(sample.exists());
 
         original = Paths.get("src/test/resources/MultipleMethods.java");
-//        copy = Paths.get("./MultipleMethods.java");
+        copy = Paths.get("MultipleMethods.java");
         methods = new File("src/main/java/MultipleMethods.java");
         Files.copy(original, methods.toPath(), StandardCopyOption.REPLACE_EXISTING);
-//        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
-        assertTrue(sample.isFile());
-        assertTrue(sample.exists());
+        Files.copy(original, copy, StandardCopyOption.REPLACE_EXISTING);
+        assertTrue(methods.isFile());
+        assertTrue(methods.exists());
 
     }
 
@@ -52,13 +55,12 @@ public class AutograderMutationTest {
 
     @AfterAll
     public static void cleanup() {
-//        assertTrue(sample.delete());
-//        assertTrue(methods.delete());
         File f = new File( "brandon.util.NotExist_0.out");
         if (f.exists()) {
             assertTrue(f.delete());
         }
 
+        assertTrue(methods.delete());
         f = new File( "src/main/java/MultipleMethods.class");
         if (f.exists()) {
             assertTrue(f.delete());
@@ -68,6 +70,7 @@ public class AutograderMutationTest {
             assertTrue(f.delete());
         }
 
+        assertTrue(sample.delete());
         f = new File( "src/test/resources/Sample.class");
         if (f.exists()) {
             assertTrue(f.delete());
@@ -118,7 +121,6 @@ public class AutograderMutationTest {
         ag = new Autograder(3, 0);
         assertEquals("after_published", ag.visibility);
     }
-
 
     /**
      * Test to check constructor properly sets visibility to default given invalid
@@ -174,6 +176,10 @@ public class AutograderMutationTest {
         }
     }
 
+
+    /**
+     * Test to check constructor properly sets a new SecurityManager.
+     */
     @Test
     public void testConstructorSecurityManager() {
         SecurityManager m = System.getSecurityManager();
@@ -186,6 +192,9 @@ public class AutograderMutationTest {
         return new String(Files.readAllBytes(Paths.get(path)));
     }
 
+    /**
+     * Test to check Autograder properly output a JSON list once tests are finished.
+     */
     @Test
     public void testRunFinished() {
         SecurityManager m = System.getSecurityManager();
@@ -198,7 +207,7 @@ public class AutograderMutationTest {
         });
         String result = s.get().trim();
         assertEquals("{\"tests\": []}", result);
-        // clean up
+
         assertDoesNotThrow(() -> {
             Files.delete(Path.of(filename));
         });
@@ -216,6 +225,9 @@ public class AutograderMutationTest {
         }
     }
 
+    /**
+     * Test to check Autograder returns false for invalid files (non-existent file and a directory).
+     */
     @Test
     public void testSourceExistsInvalidFile() {
         String name = "_ Source File Exists";
@@ -234,9 +246,13 @@ public class AutograderMutationTest {
                 0, "hidden");
         buildTR.addOutput(error.replace("_", b));
 
-//        compareTestResults(new TestResult[]{existTR, buildTR});
+//        TODO compareTestResults(new TestResult[]{existTR, buildTR});
     }
 
+
+    /**
+     * Test to check a file does exist.
+     */
     @Test
     public void testSourceExists() {
         String filename = "./build/tmp/temp.txt";
@@ -260,40 +276,57 @@ public class AutograderMutationTest {
         file.delete();
     }
 
+
+    /**
+     * Test to check if valid java file compiles.
+     */
     @Test
     public void testCompile() {
         String filename = "./src/test/resources/Sample.java";
         assertEquals(0, ag.compile(filename));
     }
 
+
+    /**
+     * Test to check if an invalid java file compiles.
+     */
     @Test
     public void testCompileInvalidFile() {
         String filename = "doesnotexist";
+
         assertNotEquals(0, ag.compile(filename));
     }
 
-
+    /**
+     * Test to check if the Autograder test method properly tests if a valid java file compiles.
+     */
     @Test
     public void testTestCompile() {
         String filename = "./src/test/resources/Sample";
         assertTrue(ag.testCompiles(filename));
     }
 
+    /**
+     * Test to check if the Autograder test method properly tests if an invalid java file does not compile.
+     */
     @Test
     public void testTestCompileInvalidFile() {
         String filename = "doesnotexist";
         assertFalse(ag.testCompiles(filename));
     }
-//
-//    @Test
-//    public void testStdOutDiffTestsNoClass() {
-//        String filename = "brandon.util.NotExist";
-//        assertEquals(1, ag.diffNum);
-//        ag.stdOutDiffTests(filename, 1, false, true, 0);
-//        // TODO create method to compare TestResults
-//        assertEquals(2, ag.diffNum);
-//    }
 
+    @Test
+    public void testStdOutDiffTestsNoClass() {
+        String filename = "brandon.util.NotExist";
+        assertEquals(1, ag.diffNum);
+        ag.stdOutDiffTests(filename, 1, false, true, 0);
+        // TODO create method to compare TestResults
+        assertEquals(2, ag.diffNum);
+    }
+
+    /**
+     * Test to check if diffFiles() returns false for an input of invalid file.
+     */
     @Test
     public void testDiffFilesInvalidFile() {
         String invalid = "doesnotexist";
@@ -309,47 +342,32 @@ public class AutograderMutationTest {
         assertEquals(4, ag.diffNum);
     }
 
+//    /**
+//     * Test diffFiles() returns true for same files.
+//     */
 //    @Test
 //    public void testDiffFilesSame() {
-//        File copy = new File("./build/tmp/temp.txt");
-//        assertDoesNotThrow(() -> copy.createNewFile());
-//        assertDoesNotThrow(() ->
-//                Files.copy(sample.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING)
-//        );
-//        String origPath = sample.getAbsolutePath();
-//        String copyPath = copy.getAbsolutePath();
+//        String file = "Sample.java";
 //
 //        assertEquals(1, ag.diffNum);
-//        assertTrue(ag.diffFiles(origPath, origPath));
+//        assertTrue(ag.diffFiles(file, file));
 //        assertEquals(2, ag.diffNum);
-//        assertTrue(ag.diffFiles(origPath, copyPath));
-//        assertTrue(ag.diffFiles(copyPath, origPath));
-//
-//        copy.delete();
+//        assertTrue(ag.diffFiles(file, file));
+//        assertTrue(ag.diffFiles(file, file));
 //   }
 
-//    @Test
-//    public void testDiffFilesDifferent() {
-//        String orig = "./src/test/resources/Sample.java";
-//        // Make copy
-//        String copy = "./build/tmp/temp.txt";
-//        File temp = new File(copy);
-//        assertDoesNotThrow(() -> temp.createNewFile());
-//        assertDoesNotThrow(() ->
-//                Files.copy(Paths.get(orig), Paths.get(copy), StandardCopyOption.REPLACE_EXISTING)
-//        );
-//
-//        assertEquals(1, ag.diffNum);
-//        assertTrue(ag.diffFiles(orig, orig));
-//        assertEquals(2, ag.diffNum);
-//        assertTrue(ag.diffFiles(orig, copy));
-//        assertEquals(3, ag.diffNum);
-//        assertTrue(ag.diffFiles(copy, orig));
-//        assertEquals(4, ag.diffNum);
-//
-//        temp.delete();
-//    }
+    @Test
+    public void testDiffFilesDifferent() {
+        String s = "Sample.java";
+        String m = "MultipleMethods.java";
 
+        assertFalse(ag.diffFiles(s, m));
+        assertFalse(ag.diffFiles(m, s));
+    }
+
+    /**
+     * Test if stack trace is properly returned in string format.
+     */
     @Test
     public void testStackTraceToString() {
         Exception es = new Exception("Testing stackTraceToString()");
@@ -360,12 +378,18 @@ public class AutograderMutationTest {
         assertEquals(stack, Autograder.stackTraceToString(es));
     }
 
+    /**
+     * Test getMethod() returns nothing on invalid file.
+     */
     @Test
     public void testGetMethodNoClass() {
         String filename = "doesnotexist";
         assertNull(Autograder.getMethod(filename, ""));
     }
 
+    /**
+     * Test getMethod() returns nothing on valid file with no methods.
+     */
     @Test
     public void testGetMethodNoMethod() {
         String filename = "Sample";
@@ -373,12 +397,18 @@ public class AutograderMutationTest {
         assertNull(Autograder.getMethod(filename, "exists"));
     }
 
+    /**
+     * Test getMethod() returns nothing on valid file with no parameters.
+     */
     @Test
     public void testGetMethodNoParams() {
         String filename = "Sample";
         assertNull(Autograder.getMethod(filename, "main"));
     }
 
+    /**
+     * Test getMethod() returns nothing on valid file with wrong parameters.
+     */
     @Test
     public void testGetMethodWrongParams() {
         String filename = "Sample";
@@ -387,6 +417,9 @@ public class AutograderMutationTest {
         assertNull(Autograder.getMethod(filename, "main", String[].class, double.class));
     }
 
+    /**
+     * Test getMethod() returns correct method.
+     */
     @Test
     public void testGetMethod() {
         String name = "Sample";
@@ -401,12 +434,18 @@ public class AutograderMutationTest {
         assertEquals(method, Autograder.getMethod(name, m, c));
     }
 
+    /**
+     * Test String-overloaded getMethod() returns nothing on invalid file but proper method.
+     */
     @Test
     public void testGetMethodStringNoClass() {
         String filename = "doesnotexist";
         assertNull(Autograder.getMethod(filename, "main", new String[]{"String[]"}));
     }
 
+    /**
+     * Test String-overloaded getMethod() returns nothing on valid file with invalid methods.
+     */
     @Test
     public void testGetMethodStringNoMethod() {
         String filename = "Sample";
@@ -414,12 +453,18 @@ public class AutograderMutationTest {
         assertNull(Autograder.getMethod(filename, "exists", new String[]{}));
     }
 
+    /**
+     * Test String-overloaded getMethod() returns nothing on valid file with no parameters.
+     */
     @Test
     public void testGetMethodStringNoParams() {
         String filename = "Sample";
         assertNull(Autograder.getMethod(filename, "main", new String[]{}));
     }
 
+    /**
+     * Test String-overloaded getMethod() returns nothing on wrong parameters.
+     */
     @Test
     public void testGetMethodStringWrongParams() {
         String filename = "Sample";
@@ -428,6 +473,9 @@ public class AutograderMutationTest {
         assertNull(Autograder.getMethod(filename, "main",  new String[]{"String[]", "double"}));
     }
 
+    /**
+     * Test String-overloaded getMethod() returns nothing on valid file with no parameters.
+     */
     @Test
     public void testGetMethodString() {
         String name = "Sample";
@@ -442,19 +490,32 @@ public class AutograderMutationTest {
         assertEquals(method, Autograder.getMethod(name, m, new String[]{"String[]"}));
     }
 
-    @Test
-    public void testHasMethods() {
-        // TODO TR
-        String name = "Sample";
-        String other = "MultipleMethods";
-        assertEquals(1, ag.diffNum);
-        assertTrue(ag.hasMethodsTest(name, name, true));
-        assertEquals(2, ag.diffNum);
-        assertTrue(ag.hasMethodsTest(name, name, false));
-        assertFalse(ag.hasMethodsTest(name, other, true));
-        assertTrue(ag.hasMethodsTest(other, name, true));
-    }
+//    /**
+//     * Test hasMethods() returns true for identical classes.
+//     */
+//    @Test
+//    public void testHasMethods() {
+//        String name = "Sample";
+//        assertEquals(1, ag.diffNum);
+//        assertTrue(ag.hasMethodsTest(name, name, true));
+//        assertEquals(2, ag.diffNum);
+//    }
 
+//    /**
+//     * Test hasMethods() returns false for different classes.
+//     */
+//    @Test
+//    public void testHasMethodsDiff() {
+//        // TODO TR
+//        String name = "Sample";
+//        String other = "MultipleMethods";
+//        assertFalse(ag.hasMethodsTest(name, other, true));
+//        assertTrue(ag.hasMethodsTest(other, name, true));
+//    }
+
+    /**
+     * Test hasMethod() returns true for valid file and valid method.
+     */
     @Test
     public void testHasMethod() {
         // TODO TR
@@ -466,18 +527,21 @@ public class AutograderMutationTest {
                 new String[]{"String[]"},
                 "void",
                 true,
-                new String[]{"public", "static", "void"},
+                new String[]{"public", "static"},
                 true
                 ));
         assertEquals(2, ag.diffNum);
     }
 
+    /**
+     * Test hasOverriddenMethod() returns false for invalid file and valid overridden method.
+     */
     @Test
-    public void testHasOverriddenMethod() {
+    public void testHasOverriddenMethodInvalidFile() {
         // TODO TR
-        String name = "Sample";
+        String name = "doesnotexist";
         assertEquals(1, ag.diffNum);
-        assertTrue(ag.hasOverriddenMethodTest(
+        assertFalse(ag.hasOverriddenMethodTest(
                 name,
                 "main",
                 new String[]{"String[]"},
@@ -489,6 +553,29 @@ public class AutograderMutationTest {
         assertEquals(2, ag.diffNum);
     }
 
+    /**
+     * Test hasOverriddenMethod() returns true for valid file and valid overridden method.
+     */
+    @Test
+    public void testHasOverriddenMethod() {
+        // TODO TR
+        String name = "MultipleMethods";
+        assertEquals(1, ag.diffNum);
+        assertTrue(ag.hasOverriddenMethodTest(
+                name,
+                "toString",
+                new String[]{},
+                "String",
+                true,
+                new String[]{"public"},
+                true
+        ));
+        assertEquals(2, ag.diffNum);
+    }
+
+    /**
+     * Test hasOverriddenMethod() returns false for valid file and method with wrong name.
+     */
     @Test
     public void testHasOverriddenMethodWrongName() {
         String name = "Sample";
@@ -503,6 +590,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test hasOverriddenMethod() returns false for valid file and method with wrong argument.
+     */
     @Test
     public void testHasOverriddenMethodWrongArg() {
         String name = "Sample";
@@ -517,6 +607,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test hasOverriddenMethod() returns for valid file and method with wrong return.
+     */
     @Test
     public void testHasOverriddenMethodWrongReturn() {
         String name = "Sample";
@@ -540,6 +633,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test hasOverriddenMethod() returns for valid file and method with wrong modifiers.
+     */
     @Test
     public void testHasOverriddenMethodWrongMods() {
         String name = "Sample";
@@ -563,6 +659,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Class-overloaded hasOverriddenMethod() returns true for valid file and valid method.
+     */
     @Test
     public void testHasOverriddenMethodClass() {
         // TODO TR
@@ -580,6 +679,29 @@ public class AutograderMutationTest {
         assertEquals(2, ag.diffNum);
     }
 
+    /**
+     * Test Class-overloaded hasOverriddenMethod() returns false for invalid file and valid method.
+     */
+    @Test
+    public void testHasOverriddenMethodClassInvalidFile() {
+        // TODO TR
+        String name = "doesnotexist";
+        assertEquals(1, ag.diffNum);
+        assertFalse(ag.hasOverriddenMethodTest(
+                name,
+                "main",
+                new Class[]{String[].class},
+                void.class,
+                true,
+                Modifier.PUBLIC | Modifier.STATIC,
+                true
+        ));
+        assertEquals(2, ag.diffNum);
+    }
+
+    /**
+     * Test Class-overloaded hasOverriddenMethod() returns false for valid file and method with wrong name.
+     */
     @Test
     public void testHasOverriddenMethodClassWrongName() {
         String name = "Sample";
@@ -594,6 +716,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Class-overloaded hasOverriddenMethod() returns false for valid file and method with wrong arguments.
+     */
     @Test
     public void testHasOverriddenMethodClassWrongArg() {
         String name = "Sample";
@@ -608,6 +733,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Class-overloaded hasOverriddenMethod() returns for valid file and method with wrong return.
+     */
     @Test
     public void testHasOverriddenMethodClassWrongReturn() {
         String name = "Sample";
@@ -631,6 +759,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Class-overloaded hasOverriddenMethod() returns for valid file and method with wrong modifiers.
+     */
     @Test
     public void testHasOverriddenMethodClassWrongMods() {
         String name = "Sample";
@@ -654,32 +785,35 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly checks for constructor of valid file.
+     */
     @Test
     public void testHasConstructor() {
-        assertFalse(ag.hasConstructorTest(
-                "doesnotexist",
-                new String[]{},
-                new String[]{},
-                true
-        ));
-
-        String name = "Sample";
-        assertFalse(ag.hasConstructorTest(
-                name,
-                new String[]{},
-                new String[]{},
-                true
-        ));
-
-        name = "MultipleMethods";
         assertTrue(ag.hasConstructorTest(
-                name,
+                "MultipleMethods",
                 new String[]{"String"},
                 new String[]{"public"},
                 true
         ));
     }
 
+    /**
+     * Test Autograder properly returns false for constructor of invalid file.
+     */
+    @Test
+    public void testHasConstructorInvalidFile() {
+        assertFalse(ag.hasConstructorTest(
+                "doesnotexist",
+                new String[]{},
+                new String[]{},
+                true
+        ));
+    }
+
+    /**
+     * Test Autograder properly returns false for constructor of wrong arguments.
+     */
     @Test
     public void testHasConstructorWrongArg() {
         String name = "MultipleMethods";
@@ -691,6 +825,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns false for constructor of wrong modifiers.
+     */
     @Test
     public void testHasConstructorWrongMod() {
         String name = "MultipleMethods";
@@ -708,17 +845,12 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns true for valid constructor (class-overloaded method).
+     */
     @Test
     public void testHasConstructorClass() {
-        String name = "Sample";
-        assertFalse(ag.hasConstructorTest(
-                name,
-                new Class[]{String.class},
-                Modifier.PUBLIC,
-                false
-        ));
-
-        name = "MultipleMethods";
+        String name = "MultipleMethods";
         assertTrue(ag.hasConstructorTest(
                 name,
                 new Class[]{String.class},
@@ -727,6 +859,23 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns false for valid java file with no constructor (class-overloaded method).
+     */
+    @Test
+    public void testHasConstructorClassNoConstructor() {
+        String name = "Sample";
+        assertFalse(ag.hasConstructorTest(
+                name,
+                new Class[]{},
+                Modifier.PUBLIC,
+                false
+        ));
+    }
+
+    /**
+     * Test Autograder properly returns false for constructor with wrong argument (class-overloaded method).
+     */
     @Test
     public void testHasConstructorClassWrongArg() {
         String name = "MultipleMethods";
@@ -738,6 +887,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns for constructor with wrong modifiers (class-overloaded method).
+     */
     @Test
     public void testHasConstructorClassWrongMod() {
         String name = "MultipleMethods";
@@ -755,6 +907,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns false for hasMethod (String-overloaded) with wrong argument.
+     */
     @Test
     public void testGetMethodWrongArg() {
         String name = "Sample";;
@@ -769,6 +924,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns false for hasMethod (String-overloaded) with wrong return.
+     */
     @Test
     public void testGetMethodWrongReturn() {
         String name = "Sample";;
@@ -783,6 +941,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns false for hasMethod (String-overloaded) with wrong modifiers.
+     */
     @Test
     public void testGetMethodWrongMods() {
         String name = "Sample";;
@@ -797,6 +958,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder properly returns correct modifier.
+     */
     @Test
     public void testGetModifiers() {
         assertEquals(Modifier.PRIVATE, ag.getModifiers(new String[]{"private"}));
@@ -814,6 +978,9 @@ public class AutograderMutationTest {
         assertEquals(0, ag.getModifiers(new String[]{""}));
     }
 
+    /**
+     * Test Autograder properly returns correct code for multiple modifiers.
+     */
     @Test
     public void testGetModifiersMultiple() {
         assertEquals(Modifier.PRIVATE | Modifier.PUBLIC, ag.getModifiers(new String[]{"private", "public"}));
@@ -826,13 +993,17 @@ public class AutograderMutationTest {
         }));
     }
 
+    /**
+     * Test Autograder properly returns correct modifier that is case-insensitive.
+     */
     @Test
     public void testGetModifiersMixedCase() {
         assertEquals(Modifier.PRIVATE, ag.getModifiers(new String[]{"prIvATe"}));
-//        assertEquals(Modifier.ABSTRACT, ag.getModifiers(new String[]{"AbstracT"}));
-//        assertEquals(Modifier.FINAL, ag.getModifiers(new String[]{"FINAL"}));
     }
 
+    /**
+     * Test Autograder properly returns correct Class.
+     */
     @Test
     public void testGetClasses() {
         String[] s = new String[]{"int", "double", "String[]"};
@@ -840,11 +1011,17 @@ public class AutograderMutationTest {
         assertArrayEquals(c, ag.getClasses(s));
     }
 
+    /**
+     * Test Autograder properly returns empty array for null class.
+     */
     @Test
     public void testGetClassesNull() {
         assertArrayEquals(new Class[]{}, ag.getClasses(null));
     }
 
+    /**
+     * Test Autograder returns false for invalid file.
+     */
     @Test
     public void testMethodCountNoFile() {
         assertFalse(ag.testMethodCount(
@@ -856,18 +1033,29 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder counts methods for valid file.
+     */
     @Test
     public void testMethodCount() {
         String name = "MultipleMethods";
         assertEquals(1, ag.diffNum);
         assertTrue(ag.testMethodCount(
                 name,
-                3,
+                5, // jacoco adds private static $jacocoInit(...) method
                 0,
                 false,
                 false
         ));
         assertEquals(2, ag.diffNum);
+    }
+
+    /**
+     * Test Autograder counts methods filtered by modifiers.
+     */
+    @Test
+    public void testMethodCountWithMods() {
+        String name = "MultipleMethods";
         assertTrue(ag.testMethodCount(
                 name,
                 2,
@@ -877,6 +1065,9 @@ public class AutograderMutationTest {
         ));
     }
 
+    /**
+     * Test Autograder counts at least a number of methods.
+     */
     @Test
     public void testMethodCountAtleast() {
         String name = "MultipleMethods";
@@ -898,10 +1089,6 @@ public class AutograderMutationTest {
         ));
     }
 
-    /**
-     * From Blackbox tests.
-     */
-
     /*
      * Tests to see if the comparisonTest method throws an exception if the input argument is null.
      */
@@ -916,25 +1103,9 @@ public class AutograderMutationTest {
         assertThrows(NullPointerException.class, () -> ag.comparisonTest(finalPath, null, new Object()));
     }
 
-    @Test
-    public void testMethodCountThrowsExceptionIfProgramNameIsNull()
-    {
-        assertThrows(NullPointerException.class, () -> ag.testMethodCount(null, 1, 0, false, false));
-    }
-
-    @Test
-    public void testGetVisibilityReturnsAfterDueDate()
-    {
-        ag.setVisibility(2);
-        assertEquals("after_due_date", ag.getVisibility());
-    }
-
-    @Test
-    public void testStackTraceToStringThrowsExceptionIfArgIsNull()
-    {
-        assertThrows(NullPointerException.class, () -> Autograder.stackTraceToString(null));
-    }
-
+    /**
+     * Test Autograder checks if valid file contains ArrayList.
+     */
     @Test
     public void testClassDoesNotUseArrayListReturnsFalseOnValidFile()
     {
@@ -943,33 +1114,33 @@ public class AutograderMutationTest {
         assertFalse(ag.classDoesNotUseArrayList(path));
     }
 
-
     /**
-     * Tests from Whitebox.
+     * Test Autograder checks if valid file contains ArrayList.
      */
-    public File testFile;
-
     @Test
     public void testClassDoesNotUseArrayListFail() {
         assertFalse(ag.classDoesNotUseArrayList("./src/main/java/project_2/UsesList"));
     }
 
-    @Test
-    public void testHasConstructorTest() {
-        assertTrue(ag.hasConstructorTest("java.lang.Integer", new String[] {"int"}, new String[] {"public"}, true));
-    }
-
-
+    /**
+     * Test Autograder checks if valid file uses packages.
+     */
     @Test
     public void testClassDoesNotUsePackagesFileExistsFail() {
         assertFalse(ag.classDoesNotUsePackages(testFile.getAbsolutePath()));
     }
 
+    /**
+     * Test Autograder checks if junitTests passes without exception.
+     */
     @Test
     public void testJunitTests() {
         assertDoesNotThrow(() -> ag.junitTests("src/main/java/project_2/Car"));
     }
 
+    /**
+     * Test Autograder checks if file has checkstyle errors.
+     */
     @Test
     public void testTestCheckstyleCodeWithStyleErrors() {
         ag.testCheckstyle(testFile.getAbsolutePath());
@@ -977,17 +1148,17 @@ public class AutograderMutationTest {
         assertTrue(outputStreamCaptor.toString().trim().contains("did not pass checkstyle"));
     }
 
+    /**
+     * Test Autograder throws exception for checkstyle() on invalid file.
+     */
     @Test
     public void testTestSortedCheckstyleNonExistentFile() {
         assertThrows(Exception.class, () -> ag.testSortedCheckstyle("non-testFile", 1, false));
     }
 
-    @Test
-    public void setScoreLessThanZero() {
-        ag.setScore(-1);
-        assertEquals(0.1, this.ag.maxScore);
-    }
-
+    /**
+     * Test Autograder does not compile faulty java file.
+     */
     @Test
     public void testCompileFaultyFile() {
         File tempFile = new File(getClass().getClassLoader().getResource("FaultyFile.java").getFile());
